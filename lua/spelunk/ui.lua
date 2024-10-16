@@ -45,17 +45,18 @@ function M.show_help()
 		line = help_slot.line
 	})
 	local content = {
-		'Cursor down     ' .. window_config.cursor_down,
-		'Cursor up       ' .. window_config.cursor_up,
-		'Bookmark down   ' .. window_config.bookmark_up,
-		'Bookmark up     ' .. window_config.bookmark_up,
-		'Go to bookmark  ' .. window_config.goto_bookmark,
-		'Delete bookmark ' .. window_config.delete_bookmark,
-		'Next stack      ' .. window_config.next_stack,
-		'Previous stack  ' .. window_config.previous_stack,
-		'New stack       ' .. window_config.new_stack,
-		'Delete stack    ' .. window_config.delete_stack,
-		'Close           ' .. window_config.close,
+		'Cursor down       ' .. window_config.cursor_down,
+		'Cursor up         ' .. window_config.cursor_up,
+		'Bookmark down     ' .. window_config.bookmark_down,
+		'Bookmark up       ' .. window_config.bookmark_up,
+		'Go to bookmark    ' .. window_config.goto_bookmark,
+		'Delete bookmark   ' .. window_config.delete_bookmark,
+		'Next stack        ' .. window_config.next_stack,
+		'Previous stack    ' .. window_config.previous_stack,
+		'New stack         ' .. window_config.new_stack,
+		'Delete stack      ' .. window_config.delete_stack,
+		'Close             ' .. window_config.close,
+		'Help              ' .. 'h',
 	}
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)

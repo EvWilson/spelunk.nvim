@@ -2,16 +2,19 @@
 
 Marks not cutting it? Create and manage bookmarks more easily, with an easy to use and configurable UI.
 
+![Demo](assets/demo.gif)
+
 ## Installation/Configuration
 Via [lazy](https://github.com/folke/lazy.nvim):
 ```lua
 require("lazy").setup({
-  {
-    'EvWilson/spelunk.nvim',
-    config = function()
-      require('spelunk').setup()
-    end
-  }
+	{
+		'EvWilson/spelunk.nvim',
+		dependencies = { 'nvim-lua/plenary.nvim' },
+		config = function()
+			require('spelunk').setup()
+		end
+	}
 })
 ```
 
