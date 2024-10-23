@@ -165,11 +165,11 @@ function M.new_stack()
 end
 
 function M.setup(config)
-	local cfg_helpers = require('spelunk.config')
+	local cfg = require('spelunk.config')
 	local base_config = (config or {}).base_mappings or {}
-	cfg_helpers.apply_base_defaults(base_config)
+	cfg.apply_base_defaults(base_config)
 	window_config = (config or {}).window_mappings or {}
-	cfg_helpers.apply_window_defaults(window_config)
+	cfg.apply_window_defaults(window_config)
 	ui.setup(window_config)
 
 	local set = vim.keymap.set

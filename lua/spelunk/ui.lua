@@ -1,3 +1,4 @@
+local cfg = require('spelunk.config')
 local popup = require('plenary.popup')
 
 local M = {}
@@ -10,6 +11,9 @@ local preview_window_id = -1
 local help_window_id = -1
 
 local window_config
+
+local focus_cb
+local unfocus_cb
 
 local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 
@@ -25,7 +29,7 @@ local preview_slot = {
 	col = width_portion * 11
 }
 local help_slot = {
-	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2),
+	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2) - 2,
 	col = width_portion * 6
 }
 
@@ -39,6 +43,8 @@ function M.setup(window_cfg)
 end
 
 function M.show_help()
+	unfocus_cb()
+
 	local bufnr, win_id = M.create_window({
 		title = "Help - exit with 'q'",
 		col = help_slot.col,
@@ -64,11 +70,14 @@ function M.show_help()
 	help_window_id = win_id
 	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':lua require("spelunk").close_help()<CR>',
 		{ noremap = true, silent = true })
+
+	local _, _ = cfg.persist_focus(bufnr)
 end
 
 function M.close_help()
 	vim.api.nvim_win_close(help_window_id, true)
 	help_window_id = -1
+	focus_cb()
 end
 
 function M.create_windows()
@@ -102,6 +111,10 @@ function M.create_windows()
 	set_keymap(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
 	set_keymap(window_config.close, ':lua require("spelunk").close_windows()<CR>')
 	set_keymap('h', ':lua require("spelunk").show_help()<CR>')
+
+	local create_cb, cleanup_cb = cfg.persist_focus(bufnr)
+	focus_cb = create_cb
+	unfocus_cb = cleanup_cb
 
 	return bufnr
 end
