@@ -1,4 +1,3 @@
-local cfg = require('spelunk.config')
 local popup = require('plenary.popup')
 
 local M = {}
@@ -38,6 +37,53 @@ local function window_ready(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
 end
 
+---@param bufnr integer
+local function persist_focus(bufnr)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local group_name = string.format('SpelunkPersistFocus_%d', bufnr)
+
+	local focus = function()
+		local current_buf = vim.api.nvim_get_current_buf()
+		if current_buf ~= bufnr then
+			local windows = vim.api.nvim_list_wins()
+			local target_win
+			for _, win in ipairs(windows) do
+				if vim.api.nvim_win_get_buf(win) == bufnr then
+					target_win = win
+					break
+				end
+			end
+
+			if target_win then
+				vim.api.nvim_set_current_win(target_win)
+			end
+		end
+	end
+
+	local cleanup = function()
+		vim.api.nvim_del_augroup_by_name(group_name)
+	end
+
+	local create = function()
+		focus_cb()
+		vim.api.nvim_create_augroup(group_name, { clear = true })
+		vim.api.nvim_create_autocmd('WinEnter', {
+			group = group_name,
+			callback = focus,
+		})
+
+		vim.api.nvim_create_autocmd('BufDelete', {
+			group = group_name,
+			buffer = bufnr,
+			callback = cleanup,
+		})
+	end
+
+	create()
+
+	return create, cleanup
+end
+
 function M.setup(window_cfg)
 	window_config = window_cfg
 end
@@ -71,7 +117,7 @@ function M.show_help()
 	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':lua require("spelunk").close_help()<CR>',
 		{ noremap = true, silent = true })
 
-	local _, _ = cfg.persist_focus(bufnr)
+	local _, _ = persist_focus(bufnr)
 end
 
 function M.close_help()
@@ -112,7 +158,7 @@ function M.create_windows()
 	set_keymap(window_config.close, ':lua require("spelunk").close_windows()<CR>')
 	set_keymap('h', ':lua require("spelunk").show_help()<CR>')
 
-	local create_cb, cleanup_cb = cfg.persist_focus(bufnr)
+	local create_cb, cleanup_cb = persist_focus(bufnr)
 	focus_cb = create_cb
 	unfocus_cb = cleanup_cb
 
