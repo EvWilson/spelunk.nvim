@@ -11,6 +11,9 @@ local help_window_id = -1
 
 local window_config
 
+local focus_cb
+local unfocus_cb
+
 local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 
 local width_portion = math.floor(vim.o.columns / 20)
@@ -25,7 +28,7 @@ local preview_slot = {
 	col = width_portion * 11
 }
 local help_slot = {
-	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2),
+	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2) - 2,
 	col = width_portion * 6
 }
 
@@ -34,11 +37,60 @@ local function window_ready(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
 end
 
+---@param bufnr integer
+local function persist_focus(bufnr)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local group_name = string.format('SpelunkPersistFocus_%d', bufnr)
+
+	local focus = function()
+		local current_buf = vim.api.nvim_get_current_buf()
+		if current_buf ~= bufnr then
+			local windows = vim.api.nvim_list_wins()
+			local target_win
+			for _, win in ipairs(windows) do
+				if vim.api.nvim_win_get_buf(win) == bufnr then
+					target_win = win
+					break
+				end
+			end
+
+			if target_win then
+				vim.api.nvim_set_current_win(target_win)
+			end
+		end
+	end
+
+	local cleanup = function()
+		vim.api.nvim_del_augroup_by_name(group_name)
+	end
+
+	local create = function()
+		focus_cb()
+		vim.api.nvim_create_augroup(group_name, { clear = true })
+		vim.api.nvim_create_autocmd('WinEnter', {
+			group = group_name,
+			callback = focus,
+		})
+
+		vim.api.nvim_create_autocmd('BufDelete', {
+			group = group_name,
+			buffer = bufnr,
+			callback = cleanup,
+		})
+	end
+
+	create()
+
+	return create, cleanup
+end
+
 function M.setup(window_cfg)
 	window_config = window_cfg
 end
 
 function M.show_help()
+	unfocus_cb()
+
 	local bufnr, win_id = M.create_window({
 		title = "Help - exit with 'q'",
 		col = help_slot.col,
@@ -64,11 +116,14 @@ function M.show_help()
 	help_window_id = win_id
 	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':lua require("spelunk").close_help()<CR>',
 		{ noremap = true, silent = true })
+
+	local _, _ = persist_focus(bufnr)
 end
 
 function M.close_help()
 	vim.api.nvim_win_close(help_window_id, true)
 	help_window_id = -1
+	focus_cb()
 end
 
 function M.create_windows()
@@ -102,6 +157,10 @@ function M.create_windows()
 	set_keymap(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
 	set_keymap(window_config.close, ':lua require("spelunk").close_windows()<CR>')
 	set_keymap('h', ':lua require("spelunk").show_help()<CR>')
+
+	local create_cb, cleanup_cb = persist_focus(bufnr)
+	focus_cb = create_cb
+	unfocus_cb = cleanup_cb
 
 	return bufnr
 end
