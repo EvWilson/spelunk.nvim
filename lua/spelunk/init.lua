@@ -1,17 +1,23 @@
 local ui = require('spelunk.ui')
+local persist = require('spelunk.persistence')
 
 local M = {}
 
----@type table<string, Bookmark[]>
-local bookmark_stacks = {
+---@type BookmarkStack
+local default_stacks = {
 	{ name = "Default", bookmarks = {} }
 }
+---@type BookmarkStack
+local bookmark_stacks
 ---@type integer
 local current_stack_index = 1
 ---@type integer
 local cursor_index = 1
 
-local window_config = nil
+local window_config
+
+---@type boolean
+local enable_persist
 
 local function tbllen(tbl)
 	local count = 0
@@ -70,6 +76,7 @@ function M.add_bookmark()
 	print("[spelunk] Bookmark added to stack '" ..
 		bookmark_stacks[current_stack_index].name .. "': " .. current_file .. ":" .. current_line)
 	update_window()
+	M.persist()
 end
 
 ---@param direction integer
@@ -103,6 +110,7 @@ function M.move_bookmark(direction)
 	bookmark_stacks[current_stack_index].bookmarks[cursor_index] = tmp_new
 	bookmark_stacks[current_stack_index].bookmarks[new_idx] = curr_mark
 	M.move_cursor(direction)
+	M.persist()
 end
 
 function M.goto_selected_bookmark()
@@ -124,6 +132,7 @@ function M.delete_selected_bookmark()
 		cursor_index = #bookmarks
 	end
 	update_window()
+	M.persist()
 end
 
 function M.delete_current_stack()
@@ -137,6 +146,7 @@ function M.delete_current_stack()
 	table.remove(bookmark_stacks, current_stack_index)
 	current_stack_index = 1
 	update_window()
+	M.persist()
 end
 
 function M.next_stack()
@@ -159,15 +169,34 @@ function M.new_stack()
 		cursor_index = 1
 		update_window()
 	end
+	M.persist()
 end
 
-function M.setup(config)
+function M.persist()
+	if enable_persist then
+		persist.save(bookmark_stacks)
+	end
+end
+
+function M.setup(c)
+	local conf = c or {}
 	local cfg = require('spelunk.config')
-	local base_config = (config or {}).base_mappings or {}
+	local base_config = conf.base_mappings or {}
 	cfg.apply_base_defaults(base_config)
-	window_config = (config or {}).window_mappings or {}
+	window_config = conf.window_mappings or {}
 	cfg.apply_window_defaults(window_config)
 	ui.setup(window_config)
+
+	enable_persist = conf.enable_persist or cfg.get_default('enable_persist')
+	if enable_persist then
+		local saved = persist.load()
+		if saved then
+			bookmark_stacks = saved
+		end
+	end
+	if not bookmark_stacks then
+		bookmark_stacks = default_stacks
+	end
 
 	local set = vim.keymap.set
 	set('n', base_config.toggle, ':lua require("spelunk").toggle_window()<CR>',

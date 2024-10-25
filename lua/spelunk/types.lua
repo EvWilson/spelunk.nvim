@@ -2,6 +2,8 @@
 ---@field file string
 ---@field line integer
 
+---@alias BookmarkStack table<string, Bookmark[]>
+
 ---@class CreateWinOpts
 ---@field title string
 ---@field line integer
