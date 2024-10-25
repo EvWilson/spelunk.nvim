@@ -2,10 +2,6 @@ local ui = require('spelunk.ui')
 
 local M = {}
 
----@class Bookmark
----@field file string
----@field line integer
-
 ---@type table<string, Bookmark[]>
 local bookmark_stacks = {
 	{ name = "Default", bookmarks = {} }
@@ -76,6 +72,7 @@ function M.add_bookmark()
 	update_window()
 end
 
+---@param direction integer
 function M.move_cursor(direction)
 	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
 	cursor_index = cursor_index + direction

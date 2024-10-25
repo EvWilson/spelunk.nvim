@@ -37,61 +37,76 @@ local function window_ready(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
 end
 
----@param bufnr integer
-local function persist_focus(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
+---@param win_id integer
+---@param cleanup function
+local function persist_focus(win_id, cleanup)
+	local bufnr = vim.api.nvim_win_get_buf(win_id)
 	local group_name = string.format('SpelunkPersistFocus_%d', bufnr)
 
 	local focus = function()
-		local current_buf = vim.api.nvim_get_current_buf()
-		if current_buf ~= bufnr then
-			local windows = vim.api.nvim_list_wins()
-			local target_win
-			for _, win in ipairs(windows) do
-				if vim.api.nvim_win_get_buf(win) == bufnr then
-					target_win = win
-					break
+		local cb = function()
+			local current_buf = vim.api.nvim_get_current_buf()
+			if current_buf ~= bufnr then
+				local windows = vim.api.nvim_list_wins()
+				local target_win
+				for _, win in ipairs(windows) do
+					if vim.api.nvim_win_get_buf(win) == bufnr then
+						target_win = win
+						break
+					end
+				end
+				if target_win then
+					vim.api.nvim_set_current_win(target_win)
 				end
 			end
-
-			if target_win then
-				vim.api.nvim_set_current_win(target_win)
-			end
 		end
-	end
-
-	local cleanup = function()
-		vim.api.nvim_del_augroup_by_name(group_name)
-	end
-
-	local create = function()
-		focus_cb()
 		vim.api.nvim_create_augroup(group_name, { clear = true })
 		vim.api.nvim_create_autocmd('WinEnter', {
 			group = group_name,
-			callback = focus,
-		})
-
-		vim.api.nvim_create_autocmd('BufDelete', {
-			group = group_name,
-			buffer = bufnr,
-			callback = cleanup,
+			callback = cb,
+			desc = 'spelunk.nvim hold focus'
 		})
 	end
 
-	create()
+	local unfocus = function()
+		vim.api.nvim_del_augroup_by_name(group_name)
+	end
 
-	return create, cleanup
+	focus()
+
+	vim.api.nvim_create_autocmd("WinClosed", {
+		pattern = tostring(win_id),
+		callback = cleanup,
+		desc = 'spelunk.nvim cleanup window exit',
+	})
+
+	return focus, unfocus
 end
 
 function M.setup(window_cfg)
 	window_config = window_cfg
 end
 
+---@param opts CreateWinOpts
+local function create_window(opts)
+	local bufnr = vim.api.nvim_create_buf(false, true)
+	local win_id = popup.create(bufnr, {
+		title = opts.title,
+		line = opts.line,
+		col = opts.col,
+		minwidth = standard_width,
+		minheight = standard_height,
+		borderchars = border_chars,
+	})
+	vim.api.nvim_set_option_value('wrap', false, { win = win_id })
+	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
+	return bufnr, win_id
+end
+
 function M.show_help()
 	unfocus_cb()
 
-	local bufnr, win_id = M.create_window({
+	local bufnr, win_id = create_window({
 		title = "Help - exit with 'q'",
 		col = help_slot.col,
 		line = help_slot.line
@@ -117,24 +132,28 @@ function M.show_help()
 	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ':lua require("spelunk").close_help()<CR>',
 		{ noremap = true, silent = true })
 
-	local _, _ = persist_focus(bufnr)
+	local _, _ = persist_focus(win_id, function()
+		vim.api.nvim_del_augroup_by_name(string.format('SpelunkPersistFocus_%d', bufnr))
+		vim.api.nvim_win_close(help_window_id, true)
+		help_window_id = -1
+		focus_cb()
+	end
+	)
 end
 
 function M.close_help()
 	vim.api.nvim_win_close(help_window_id, true)
-	help_window_id = -1
-	focus_cb()
 end
 
 function M.create_windows()
-	local bufnr, win_id = M.create_window({
+	local bufnr, win_id = create_window({
 		title = "Bookmarks",
 		col = bookmark_slot.col,
 		line = bookmark_slot.line
 	})
 	window_id = win_id
 
-	local _, prev_id = M.create_window({
+	local _, prev_id = create_window({
 		title = "Preview",
 		col = preview_slot.col,
 		line = preview_slot.line
@@ -158,39 +177,42 @@ function M.create_windows()
 	set_keymap(window_config.close, ':lua require("spelunk").close_windows()<CR>')
 	set_keymap('h', ':lua require("spelunk").show_help()<CR>')
 
-	local create_cb, cleanup_cb = persist_focus(bufnr)
-	focus_cb = create_cb
-	unfocus_cb = cleanup_cb
+	focus_cb, unfocus_cb = persist_focus(win_id, function()
+		if window_ready(window_id) then
+			vim.api.nvim_win_close(window_id, true)
+			window_id = -1
+		end
+		-- Defer preview window cleanup, as running it concurrently to main window
+		-- causes it to not fire
+		vim.schedule(function()
+			if window_ready(preview_window_id) then
+				vim.api.nvim_win_close(preview_window_id, true)
+				preview_window_id = -1
+			end
+		end)
+	end)
 
 	return bufnr
 end
 
----@class s.CreateWinOpts
----@field title string
----@field line integer
----@field col integer
-
----@param opts s.CreateWinOpts
-function M.create_window(opts)
-	local bufnr = vim.api.nvim_create_buf(false, true)
-	local win_id = popup.create(bufnr, {
-		title = opts.title,
-		line = opts.line,
-		col = opts.col,
-		minwidth = standard_width,
-		minheight = standard_height,
-		borderchars = border_chars,
-	})
-	vim.api.nvim_set_option_value('wrap', false, { win = win_id })
+---@param opts UpdateWinOpts
+local function update_preview(opts)
+	local bookmark = opts.bookmark
+	if not window_ready(preview_window_id) or not bookmark then
+		return
+	end
+	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
+	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
+	local lines = vim.fn.readfile(bookmark.file, '', bookmark.line + 14)
+	local start_line = math.max(1, bookmark.line - 15)
+	lines = vim.list_slice(lines, start_line, #lines)
+	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
-	return bufnr, win_id
-end
 
----@class UpdateWinOpts
----@field cursor_index integer
----@field title string
----@field lines string[]
----@field bookmark Bookmark
+	-- Highlight the bookmarked line
+	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
+	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.min(15, bookmark.line - start_line), 0, -1)
+end
 
 ---@param opts UpdateWinOpts
 function M.update_window(opts)
@@ -213,26 +235,7 @@ function M.update_window(opts)
 	end
 	vim.api.nvim_win_set_cursor(window_id, { opts.cursor_index + offset, 0 })
 
-	M.update_preview(opts)
-end
-
----@param opts UpdateWinOpts
-function M.update_preview(opts)
-	local bookmark = opts.bookmark
-	if not window_ready(preview_window_id) or not bookmark then
-		return
-	end
-	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
-	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local lines = vim.fn.readfile(bookmark.file, '', bookmark.line + 14)
-	local start_line = math.max(1, bookmark.line - 15)
-	lines = vim.list_slice(lines, start_line, #lines)
-	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
-
-	-- Highlight the bookmarked line
-	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.min(15, bookmark.line - start_line), 0, -1)
+	update_preview(opts)
 end
 
 ---@param opts UpdateWinOpts
@@ -250,10 +253,6 @@ function M.close_windows()
 	if window_ready(window_id) then
 		vim.api.nvim_win_close(window_id, true)
 		window_id = -1
-	end
-	if window_ready(preview_window_id) then
-		vim.api.nvim_win_close(preview_window_id, true)
-		preview_window_id = -1
 	end
 end
 
