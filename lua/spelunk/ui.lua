@@ -83,6 +83,31 @@ local function persist_focus(win_id, cleanup)
 	return focus, unfocus
 end
 
+---@param filename string
+---@param start_line integer
+---@param end_line integer
+---@return string[]
+local function read_lines(filename, start_line, end_line)
+	local ok, lines = pcall(vim.fn.readfile, filename)
+	if not ok then
+		error("[spelunk.nvim] could not read file: " .. filename)
+		return {}
+	end
+
+	start_line = math.max(1, start_line)
+	end_line = math.min(end_line, #lines)
+	if end_line < start_line then
+		error("[spelunk.nvim] end line must be greater than or equal to start line")
+		return {}
+	end
+
+	local result = {}
+	for i = start_line, end_line do
+		table.insert(result, lines[i])
+	end
+	return result
+end
+
 function M.setup(window_cfg)
 	window_config = window_cfg
 end
@@ -203,15 +228,14 @@ local function update_preview(opts)
 	end
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local lines = vim.fn.readfile(bookmark.file, '', bookmark.line + 14)
-	local start_line = math.max(1, bookmark.line - 15)
-	lines = vim.list_slice(lines, start_line, #lines)
+	local start_line = math.max(1, bookmark.line - (standard_height / 2))
+	local lines = read_lines(bookmark.file, start_line, bookmark.line + (standard_height / 2))
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
 	-- Highlight the bookmarked line
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.min(15, bookmark.line - start_line), 0, -1)
+	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.floor(standard_height / 2), 0, -1)
 end
 
 ---@param opts UpdateWinOpts
