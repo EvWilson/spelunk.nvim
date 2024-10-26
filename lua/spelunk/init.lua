@@ -130,7 +130,7 @@ function M.delete_selected_bookmark()
 		return
 	end
 	table.remove(bookmarks, cursor_index)
-	if cursor_index > #bookmarks then
+	if cursor_index > #bookmarks and #bookmarks ~= 0 then
 		cursor_index = #bookmarks
 	end
 	update_window()

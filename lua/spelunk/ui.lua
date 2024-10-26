@@ -228,8 +228,8 @@ local function update_preview(opts)
 	end
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local start_line = math.max(1, bookmark.line - (standard_height / 2))
-	local lines = read_lines(bookmark.file, start_line, bookmark.line + (standard_height / 2))
+	local lines = read_lines(bookmark.file, math.max(1, bookmark.line - (standard_height / 2)),
+		bookmark.line + (standard_height / 2))
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
