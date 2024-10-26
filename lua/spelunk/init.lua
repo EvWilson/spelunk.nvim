@@ -118,7 +118,9 @@ function M.goto_selected_bookmark()
 	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
 	if cursor_index > 0 and cursor_index <= #bookmarks then
 		M.close_windows()
-		vim.cmd('edit +' .. bookmarks[cursor_index].line .. ' ' .. bookmarks[cursor_index].file)
+		vim.schedule(function()
+			vim.cmd('edit +' .. bookmarks[cursor_index].line .. ' ' .. bookmarks[cursor_index].file)
+		end)
 	end
 end
 
