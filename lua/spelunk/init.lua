@@ -19,6 +19,7 @@ local window_config
 ---@type boolean
 local enable_persist
 
+---@param tbl table
 local function tbllen(tbl)
 	local count = 0
 	for _ in pairs(tbl) do count = count + 1 end
@@ -79,7 +80,7 @@ function M.add_bookmark()
 	M.persist()
 end
 
----@param direction integer
+---@param direction 1 | -1
 function M.move_cursor(direction)
 	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
 	cursor_index = cursor_index + direction
@@ -91,7 +92,7 @@ function M.move_cursor(direction)
 	update_window()
 end
 
----@param direction integer
+---@param direction 1 | -1
 function M.move_bookmark(direction)
 	if direction ~= 1 and direction ~= -1 then
 		print('[spelunk] move_bookmark passed invalid direction')
@@ -115,10 +116,9 @@ end
 
 function M.goto_selected_bookmark()
 	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
-	if bookmarks[cursor_index] then
-		local bookmark = bookmarks[cursor_index]
-		ui.close_windows()
-		vim.cmd('edit +' .. bookmark.line .. ' ' .. bookmark.file)
+	if cursor_index > 0 and cursor_index <= #bookmarks then
+		M.close_windows()
+		vim.cmd('edit +' .. bookmarks[cursor_index].line .. ' ' .. bookmarks[cursor_index].file)
 	end
 end
 
@@ -133,6 +133,12 @@ function M.delete_selected_bookmark()
 	end
 	update_window()
 	M.persist()
+end
+
+---@param direction 1 | -1
+function M.select_and_goto_bookmark(direction)
+	M.move_cursor(direction)
+	M.goto_selected_bookmark()
 end
 
 function M.delete_current_stack()
@@ -202,6 +208,10 @@ function M.setup(c)
 	set('n', base_config.toggle, ':lua require("spelunk").toggle_window()<CR>',
 		{ noremap = true, silent = true })
 	set('n', base_config.add, ':lua require("spelunk").add_bookmark()<CR>',
+		{ noremap = true, silent = true })
+	set('n', base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
+		{ noremap = true, silent = true })
+	set('n', base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
 		{ noremap = true, silent = true })
 end
 

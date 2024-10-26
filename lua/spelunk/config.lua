@@ -3,7 +3,9 @@ local M = {}
 local default_config = {
 	base_mappings = {
 		toggle = '<leader>bt',
-		add = '<leader>ba'
+		add = '<leader>ba',
+		next_bookmark = '<leader>bn',
+		prev_bookmark = '<leader>bp',
 	},
 	window_mappings = {
 		cursor_down = 'j',

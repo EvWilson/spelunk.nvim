@@ -161,21 +161,21 @@ function M.create_windows()
 	preview_window_id = prev_id
 
 	-- Set up keymaps for navigation within the window
-	local function set_keymap(key, func)
+	local function setkey(key, func)
 		vim.api.nvim_buf_set_keymap(bufnr, 'n', key, func, { noremap = true, silent = true })
 	end
-	set_keymap(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>')
-	set_keymap(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>')
-	set_keymap(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>')
-	set_keymap(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>')
-	set_keymap(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>')
-	set_keymap(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>')
-	set_keymap(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>')
-	set_keymap(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>')
-	set_keymap(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>')
-	set_keymap(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
-	set_keymap(window_config.close, ':lua require("spelunk").close_windows()<CR>')
-	set_keymap('h', ':lua require("spelunk").show_help()<CR>')
+	setkey(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>')
+	setkey(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>')
+	setkey(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>')
+	setkey(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>')
+	setkey(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>')
+	setkey(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>')
+	setkey(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>')
+	setkey(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>')
+	setkey(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>')
+	setkey(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
+	setkey(window_config.close, ':lua require("spelunk").close_windows()<CR>')
+	setkey('h', ':lua require("spelunk").show_help()<CR>')
 
 	focus_cb, unfocus_cb = persist_focus(win_id, function()
 		if window_ready(window_id) then
@@ -240,7 +240,7 @@ end
 
 ---@param opts UpdateWinOpts
 function M.toggle_window(opts)
-	if window_id and vim.api.nvim_win_is_valid(window_id) then
+	if window_ready(window_id) then
 		M.close_windows()
 	else
 		local _ = M.create_windows()
