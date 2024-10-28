@@ -12,6 +12,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Opt-in persistence of bookmarks on a per-directory basis
 - Togglable UI, with contextual and rebindable controls
 - Cycle bookmarks via keybind
+- Telescope integration! Fuzzy find over all bookmarks, or those in the current stack
 
 ## Requirements
 Neovim (**stable** only) >= 0.10.0
@@ -41,6 +42,8 @@ Here's the default mapping object for reference:
 		add = '<leader>ba',
 		next_bookmark = '<leader>bn',
 		prev_bookmark = '<leader>bp',
+		search_bookmarks = '<leader>bf',
+		search_current_bookmarks = '<leader>bc'
 	},
 	window_mappings = {
 		cursor_down = 'j',

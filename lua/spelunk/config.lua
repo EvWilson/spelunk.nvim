@@ -6,6 +6,8 @@ local default_config = {
 		add = '<leader>ba',
 		next_bookmark = '<leader>bn',
 		prev_bookmark = '<leader>bp',
+		search_bookmarks = '<leader>bf',
+		search_current_bookmarks = '<leader>bc'
 	},
 	window_mappings = {
 		cursor_down = 'j',

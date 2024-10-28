@@ -54,6 +54,12 @@ local function update_window()
 	ui.update_window(get_win_update_opts())
 end
 
+---@param file string
+---@param line integer
+local function goto_position(file, line)
+	vim.cmd('edit +' .. line .. ' ' .. file)
+end
+
 function M.toggle_window()
 	ui.toggle_window(get_win_update_opts())
 end
@@ -122,7 +128,7 @@ local function goto_bookmark(close)
 			M.close_windows()
 		end
 		vim.schedule(function()
-			vim.cmd('edit +' .. bookmarks[cursor_index].line .. ' ' .. bookmarks[cursor_index].file)
+			goto_position(bookmarks[cursor_index].file, bookmarks[cursor_index].line)
 		end)
 	end
 end
@@ -193,6 +199,33 @@ function M.persist()
 	end
 end
 
+function M.search_marks()
+	local data = {}
+	for _, stack in ipairs(bookmark_stacks) do
+		for _, mark in ipairs(stack.bookmarks) do
+			table.insert(data, {
+				stack = stack.name,
+				file = mark.file,
+				line = mark.line,
+			})
+		end
+	end
+	require('spelunk.telescope').search_stacks('[spelunk.nvim] Bookmarks', data, goto_position)
+end
+
+function M.search_current_marks()
+	local data = {}
+	local stack = current_stack()
+	for _, mark in ipairs(stack.bookmarks) do
+		table.insert(data, {
+			stack = stack.name,
+			file = mark.file,
+			line = mark.line,
+		})
+	end
+	require('spelunk.telescope').search_stacks('[spelunk.nvim] Current Stack', data, goto_position)
+end
+
 function M.setup(c)
 	local conf = c or {}
 	local cfg = require('spelunk.config')
@@ -215,15 +248,25 @@ function M.setup(c)
 		bookmark_stacks = default_stacks
 	end
 
-	local set = vim.keymap.set
-	set('n', base_config.toggle, ':lua require("spelunk").toggle_window()<CR>',
-		{ noremap = true, silent = true })
-	set('n', base_config.add, ':lua require("spelunk").add_bookmark()<CR>',
-		{ noremap = true, silent = true })
-	set('n', base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
-		{ noremap = true, silent = true })
-	set('n', base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
-		{ noremap = true, silent = true })
+	local set = function(key, cmd, description)
+		vim.keymap.set('n', key, cmd,
+			{ desc = description, noremap = true, silent = true })
+	end
+	set(base_config.toggle, M.toggle_window, '')
+	set(base_config.add, M.add_bookmark, '')
+	set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>', '')
+	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>', '')
+
+	-- Register telescope extension, only if telescope itself is loaded already
+	local telescope_loaded = pcall(require, 'telescope')
+	if not telescope_loaded then
+		return
+	end
+	require("telescope").load_extension("spelunk")
+	set(base_config.search_bookmarks, require('telescope').extensions.spelunk.marks,
+		'[spelunk.nvim] Fuzzy find bookmarks')
+	set(base_config.search_current_bookmarks, require('telescope').extensions.spelunk.current_marks,
+		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
 end
 
 return M
