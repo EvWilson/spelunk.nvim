@@ -80,7 +80,7 @@ function M.add_bookmark()
 	local current_file = vim.fn.expand('%:p')
 	local current_line = vim.fn.line('.')
 	table.insert(bookmark_stacks[current_stack_index].bookmarks, { file = current_file, line = current_line })
-	print("[spelunk] Bookmark added to stack '" ..
+	print("[spelunk.nvim] Bookmark added to stack '" ..
 		bookmark_stacks[current_stack_index].name .. "': " .. current_file .. ":" .. current_line)
 	update_window()
 	M.persist()
@@ -101,7 +101,7 @@ end
 ---@param direction 1 | -1
 function M.move_bookmark(direction)
 	if direction ~= 1 and direction ~= -1 then
-		print('[spelunk] move_bookmark passed invalid direction')
+		print('[spelunk.nvim] move_bookmark passed invalid direction')
 		return
 	end
 	local curr_stack = current_stack()
@@ -158,7 +158,7 @@ end
 
 function M.delete_current_stack()
 	if tbllen(bookmark_stacks) < 2 then
-		print('[spelunk] Cannot delete a stack when you have less than two')
+		print('[spelunk.nvim] Cannot delete a stack when you have less than two')
 		return
 	end
 	if not bookmark_stacks[current_stack_index] then
@@ -183,7 +183,7 @@ function M.prev_stack()
 end
 
 function M.new_stack()
-	local name = vim.fn.input("[spelunk] Enter name for new stack: ")
+	local name = vim.fn.input("[spelunk.nvim] Enter name for new stack: ")
 	if name and name ~= "" then
 		table.insert(bookmark_stacks, { name = name, bookmarks = {} })
 		current_stack_index = #bookmark_stacks

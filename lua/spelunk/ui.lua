@@ -64,7 +64,7 @@ local function persist_focus(win_id, cleanup)
 		vim.api.nvim_create_autocmd('WinEnter', {
 			group = group_name,
 			callback = cb,
-			desc = 'spelunk.nvim hold focus'
+			desc = '[spelunk.nvim] hold focus'
 		})
 	end
 
@@ -77,7 +77,7 @@ local function persist_focus(win_id, cleanup)
 	vim.api.nvim_create_autocmd("WinClosed", {
 		pattern = tostring(win_id),
 		callback = cleanup,
-		desc = 'spelunk.nvim cleanup window exit',
+		desc = '[spelunk.nvim] cleanup window exit',
 	})
 
 	return focus, unfocus
@@ -186,21 +186,21 @@ function M.create_windows()
 	preview_window_id = prev_id
 
 	-- Set up keymaps for navigation within the window
-	local function setkey(key, func)
+	local function set(key, func)
 		vim.api.nvim_buf_set_keymap(bufnr, 'n', key, func, { noremap = true, silent = true })
 	end
-	setkey(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>')
-	setkey(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>')
-	setkey(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>')
-	setkey(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>')
-	setkey(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>')
-	setkey(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>')
-	setkey(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>')
-	setkey(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>')
-	setkey(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>')
-	setkey(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
-	setkey(window_config.close, ':lua require("spelunk").close_windows()<CR>')
-	setkey('h', ':lua require("spelunk").show_help()<CR>')
+	set(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>')
+	set(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>')
+	set(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>')
+	set(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>')
+	set(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>')
+	set(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>')
+	set(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>')
+	set(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>')
+	set(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>')
+	set(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>')
+	set(window_config.close, ':lua require("spelunk").close_windows()<CR>')
+	set('h', ':lua require("spelunk").show_help()<CR>')
 
 	focus_cb, unfocus_cb = persist_focus(win_id, function()
 		if window_ready(window_id) then
@@ -233,7 +233,11 @@ local function update_preview(opts)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
-	-- Highlight the bookmarked line
+	local ft = vim.filetype.match({ filename = opts.bookmark.file })
+	if ft then
+		vim.bo[bufnr].filetype = ft
+	end
+
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
 	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.floor(standard_height / 2), 0, -1)
 end
