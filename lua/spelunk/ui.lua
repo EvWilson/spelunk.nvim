@@ -219,15 +219,15 @@ function M.create_windows()
 	focus_cb, unfocus_cb = persist_focus(win_id, function()
 		if window_ready(window_id) then
 			vim.api.nvim_win_close(window_id, true)
-			window_id = -1
 		end
+		window_id = -1
 		-- Defer preview window cleanup, as running it concurrently to main window
 		-- causes it to not fire
 		vim.schedule(function()
 			if window_ready(preview_window_id) then
 				vim.api.nvim_win_close(preview_window_id, true)
-				preview_window_id = -1
 			end
+			preview_window_id = -1
 		end)
 	end)
 
@@ -294,7 +294,6 @@ end
 function M.close_windows()
 	if window_ready(window_id) then
 		vim.api.nvim_win_close(window_id, true)
-		window_id = -1
 	end
 end
 
