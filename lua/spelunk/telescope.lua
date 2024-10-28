@@ -22,7 +22,6 @@ local line_previewer = previewers.new_buffer_previewer({
 	get_buffer_by_name = function(_, entry)
 		return entry.filename
 	end,
-
 	define_preview = function(self, entry)
 		local lines = vim.fn.readfile(entry.value.file)
 		vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
@@ -76,6 +75,5 @@ M.search_stacks = function(prompt, data, cb)
 		previewer = line_previewer,
 	}):find()
 end
-
 
 return M
