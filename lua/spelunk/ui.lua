@@ -9,6 +9,7 @@ local preview_window_id = -1
 ---@type integer
 local help_window_id = -1
 
+local base_config
 local window_config
 
 local focus_cb
@@ -108,7 +109,8 @@ local function read_lines(filename, start_line, end_line)
 	return result
 end
 
-function M.setup(window_cfg)
+function M.setup(base_cfg, window_cfg)
+	base_config = base_cfg
 	window_config = window_cfg
 end
 
@@ -136,7 +138,19 @@ function M.show_help()
 		col = help_slot.col,
 		line = help_slot.line
 	})
+
 	local content = {
+		'Normal Mappings',
+		'---------------',
+		'Toggle UI         ' .. base_config.toggle,
+		'Add bookmark      ' .. base_config.add,
+		'Next bookmark     ' .. base_config.next_bookmark,
+		'Prev bookmark     ' .. base_config.prev_bookmark,
+		'Search bookmarks  ' .. base_config.search_bookmarks,
+		'Search stack      ' .. base_config.search_current_bookmarks,
+		'',
+		'Window Mappings',
+		'---------------',
 		'Cursor down       ' .. window_config.cursor_down,
 		'Cursor up         ' .. window_config.cursor_up,
 		'Bookmark down     ' .. window_config.bookmark_down,

@@ -233,7 +233,7 @@ function M.setup(c)
 	cfg.apply_base_defaults(base_config)
 	window_config = conf.window_mappings or {}
 	cfg.apply_window_defaults(window_config)
-	ui.setup(window_config)
+	ui.setup(base_config, window_config)
 
 	-- Load saved bookmarks, if enabled and available
 	-- Otherwise, set defaults
