@@ -76,7 +76,7 @@ Check the mentioned help screen to see current keybinds and their use:
 ![Help](assets/help.png)
 
 ### Lualine integration
-A default integration with [lualine](https://github.com/nvim-lualine/lualine.nvim) is provided to show the number of active bookmarks in the current buffer. You may override the prefix for this string in the config map above.
+A default integration with [lualine](https://github.com/nvim-lualine/lualine.nvim) is provided to show the number of active bookmarks in the current buffer. You may override the prefix for this string in the config map above. The result of the provided configuration here can be seen in the demo video above, in the bottom left of the screen.
 ```lua
   {
     'nvim-lualine/lualine.nvim',
