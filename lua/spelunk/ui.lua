@@ -188,6 +188,7 @@ function M.show_help()
 		'Previous stack    ' .. window_config.previous_stack,
 		'New stack         ' .. window_config.new_stack,
 		'Delete stack      ' .. window_config.delete_stack,
+		'Edit stack        ' .. window_config.edit_stack,
 		'Close             ' .. window_config.close,
 		'Help              ' .. 'h',
 	}
@@ -249,6 +250,8 @@ function M.create_windows()
 	set(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>', '[spelunk.nvim] Create new stack')
 	set(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>',
 		'[spelunk.nvim] Delete current stack')
+	set(window_config.edit_stack, ':lua require("spelunk").edit_current_stack()<CR>',
+		'[spelunk.nvim] Edit the name of the current stack')
 	set(window_config.close, ':lua require("spelunk").close_windows()<CR>', '[spelunk.nvim] Close UI')
 	set('h', ':lua require("spelunk").show_help()<CR>', '[spelunk.nvim] Show help menu')
 

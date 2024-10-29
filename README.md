@@ -62,6 +62,7 @@ Here's the default mapping object for reference:
 		previous_stack = '<S-Tab>',
 		new_stack = 'n',
 		delete_stack = 'D',
+		edit_stack = 'E',
 		close = 'q',
 		help = 'h', -- Not rebindable
 	},

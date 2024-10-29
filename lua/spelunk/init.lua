@@ -173,6 +173,17 @@ function M.delete_current_stack()
 	M.persist()
 end
 
+function M.edit_current_stack()
+	local stack = bookmark_stacks[current_stack_index]
+	if not stack then
+		return
+	end
+	local name = vim.fn.input('[spelunk.nvim] Enter new name for the stack: ', stack.name)
+	bookmark_stacks[current_stack_index].name = name
+	update_window()
+	M.persist()
+end
+
 function M.next_stack()
 	current_stack_index = current_stack_index % #bookmark_stacks + 1
 	cursor_index = 1
