@@ -94,4 +94,73 @@ A default integration with [lualine](https://github.com/nvim-lualine/lualine.nvi
 ```
 
 ## API Documentation
+Here be dragons! This plugin is designed with the default bindings in mind, so there is potential for misuse here. This list will be non-exhaustive to cover just the most useful available functions, with the least potential for sharp edges.
+
+All functions listed can be called like such from within Neovim Lua code:
+```lua
+require('spelunk').setup(opts)
+```
+
+If there is functionality you'd like to see added or exposed, please feel free to open an issue!
+
+- `setup(config)`
+	- Description: initialize the plugin, should be called to opt-in to default behavior
+	- Parameters:
+		- `config` - `table`: a table in the format given in the above Configuration section
+
+- `toggle_window()`
+	- Description: toggle the UI open/closed
+
+- `close_windows()`
+	- Description: close the UI, if open
+
+- `add_bookmark()`
+	- Description: add the line under the cursor as a bookmark
+
+- `move_cursor(direction)`
+	- Description: move the cursor in the UI (and underlying state) in the provided direction
+	- Parameters:
+		- `direction` - `integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
+
+- `move_bookmark(direction)`
+	- Description: move the bookmark in the UI (and underlying state) in the provided direction
+	- Parameters:
+		- `direction` - `integer` (1 | -1): direction to move the bookmark, 1 is down, -1 is up
+
+- `goto_selected_bookmark()`
+	- Description: navigate to the bookmark currently under the cursor in the UI
+
+- `delete_selected_bookmark()`
+	- Description: delete the bookmark currently under the cursor in the UI
+
+- `select_and_goto_bookmark(direction)`
+	- Description: move the cursor in the given direction, then go to that bookmark
+	- Parameters:
+		- `direction` - `integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
+
+- `delete_current_stack()`
+	- Description: delete the currently selected stack
+
+- `edit_current_stack()`
+	- Description: edit the name of the currently selected stack
+
+- `next_stack()`
+	- Description: move to the next stack
+
+- `prev_stack()`
+	- Description: move to the previous stack
+
+- `new_stack()`
+	- Description: create a new stack
+
+- `search_marks()`
+	- Description: fuzzy find over all bookmkarks using the Telescope integration
+
+- `search_current_marks()`
+	- Description: fuzzy find over bookmkarks in the current stack using the Telescope integration
+
+- `statusline()`
+	- Description: get the value that would be set in the status line for the Lualine integration
+	- Returns:
+		- `string`
 
