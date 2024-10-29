@@ -23,6 +23,7 @@ local default_config = {
 		close = 'q',
 	},
 	enable_persist = false,
+	statusline_prefix = '🔖',
 }
 
 ---@param target table

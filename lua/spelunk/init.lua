@@ -5,7 +5,7 @@ local M = {}
 
 ---@type BookmarkStack
 local default_stacks = {
-	{ name = "Default", bookmarks = {} }
+	{ name = 'Default', bookmarks = {} }
 }
 ---@type BookmarkStack
 local bookmark_stacks
@@ -18,6 +18,9 @@ local window_config
 
 ---@type boolean
 local enable_persist
+
+---@type string
+local statusline_prefix
 
 ---@param tbl table
 local function tbllen(tbl)
@@ -39,7 +42,7 @@ local function get_win_update_opts()
 	local lines = {}
 	for i, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
 		local prefix = i == cursor_index and '> ' or '  '
-		local display = string.format("%s%s:%d", prefix, vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
+		local display = string.format('%s%s:%d', prefix, vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
 		table.insert(lines, display)
 	end
 	return {
@@ -183,8 +186,8 @@ function M.prev_stack()
 end
 
 function M.new_stack()
-	local name = vim.fn.input("[spelunk.nvim] Enter name for new stack: ")
-	if name and name ~= "" then
+	local name = vim.fn.input('[spelunk.nvim] Enter name for new stack: ')
+	if name and name ~= '' then
 		table.insert(bookmark_stacks, { name = name, bookmarks = {} })
 		current_stack_index = #bookmark_stacks
 		cursor_index = 1
@@ -226,6 +229,20 @@ function M.search_current_marks()
 	require('spelunk.telescope').search_stacks('[spelunk.nvim] Current Stack', data, goto_position)
 end
 
+---@return string
+function M.statusline()
+	local count = 0
+	local path = vim.fn.expand('%:p')
+	for _, stack in ipairs(bookmark_stacks) do
+		for _, mark in ipairs(stack.bookmarks) do
+			if mark.file == path then
+				count = count + 1
+			end
+		end
+	end
+	return statusline_prefix .. ' ' .. count
+end
+
 function M.setup(c)
 	local conf = c or {}
 	local cfg = require('spelunk.config')
@@ -248,24 +265,29 @@ function M.setup(c)
 		bookmark_stacks = default_stacks
 	end
 
+	-- Configure the prefix to use for the lualine integration
+	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')
+
 	local set = function(key, cmd, description)
 		vim.keymap.set('n', key, cmd,
 			{ desc = description, noremap = true, silent = true })
 	end
-	set(base_config.toggle, M.toggle_window, '')
-	set(base_config.add, M.add_bookmark, '')
-	set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>', '')
-	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>', '')
+	set(base_config.toggle, M.toggle_window, '[spelunk.nvim] Toggle UI')
+	set(base_config.add, M.add_bookmark, '[spelunk.nvim] Add bookmark')
+	set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
+		'[spelunk.nvim] Go to next bookmark')
+	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
+		'[spelunk.nvim] Go to previous bookmark')
 
 	-- Register telescope extension, only if telescope itself is loaded already
-	local telescope_loaded = pcall(require, 'telescope')
+	local telescope_loaded, tele = pcall(require, 'telescope')
 	if not telescope_loaded then
 		return
 	end
-	require("telescope").load_extension("spelunk")
-	set(base_config.search_bookmarks, require('telescope').extensions.spelunk.marks,
+	tele.load_extension('spelunk')
+	set(base_config.search_bookmarks, tele.extensions.spelunk.marks,
 		'[spelunk.nvim] Fuzzy find bookmarks')
-	set(base_config.search_current_bookmarks, require('telescope').extensions.spelunk.current_marks,
+	set(base_config.search_current_bookmarks, tele.extensions.spelunk.current_marks,
 		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
 end
 
