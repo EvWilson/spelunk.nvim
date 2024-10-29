@@ -17,21 +17,45 @@ local unfocus_cb
 
 local border_chars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
 
-local width_portion = math.floor(vim.o.columns / 20)
-local standard_width = math.floor(width_portion * 8)
-local standard_height = math.floor(vim.o.lines * 0.7)
-local bookmark_slot = {
-	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2),
-	col = width_portion
-}
-local preview_slot = {
-	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2),
-	col = width_portion * 11
-}
-local help_slot = {
-	line = math.floor(vim.o.lines / 2) - math.floor(standard_height / 2) - 2,
-	col = width_portion * 6
-}
+---@return BaseDimensions
+local function base_dimensions()
+	local width_portion = math.floor(vim.o.columns / 20)
+	return {
+		col_width = width_portion,
+		standard_width = math.floor(width_portion * 8),
+		standard_height = math.floor(vim.o.lines * 0.7),
+	}
+end
+
+---@return WindowCoords
+local function bookmark_dimensions()
+	local dims = base_dimensions()
+	return {
+		base = dims,
+		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2),
+		col = dims.col_width
+	}
+end
+
+---@return WindowCoords
+local function preview_dimensions()
+	local dims = base_dimensions()
+	return {
+		base = dims,
+		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2),
+		col = dims.col_width * 11,
+	}
+end
+
+---@return WindowCoords
+local function help_dimensions()
+	local dims = base_dimensions()
+	return {
+		base = dims,
+		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2) - 2,
+		col = dims.col_width * 6,
+	}
+end
 
 ---@param id integer
 local function window_ready(id)
@@ -121,8 +145,8 @@ local function create_window(opts)
 		title = opts.title,
 		line = opts.line,
 		col = opts.col,
-		minwidth = standard_width,
-		minheight = standard_height,
+		minwidth = opts.minwidth,
+		minheight = opts.minheight,
 		borderchars = border_chars,
 	})
 	vim.api.nvim_set_option_value('wrap', false, { win = win_id })
@@ -133,10 +157,13 @@ end
 function M.show_help()
 	unfocus_cb()
 
+	local dims = help_dimensions()
 	local bufnr, win_id = create_window({
 		title = "Help - exit with 'q'",
-		col = help_slot.col,
-		line = help_slot.line
+		col = dims.col,
+		line = dims.line,
+		minwidth = dims.base.standard_width,
+		minheight = dims.base.standard_height,
 	})
 
 	local content = {
@@ -168,7 +195,7 @@ function M.show_help()
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 	help_window_id = win_id
-	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', require('spelunk').close_help,
+	vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', ': lua require("spelunk").close_help()<CR>',
 		{ noremap = true, silent = true })
 
 	local _, _ = persist_focus(win_id, function()
@@ -185,17 +212,23 @@ function M.close_help()
 end
 
 function M.create_windows()
+	local win_dims = bookmark_dimensions()
 	local bufnr, win_id = create_window({
 		title = 'Bookmarks',
-		col = bookmark_slot.col,
-		line = bookmark_slot.line
+		col = win_dims.col,
+		line = win_dims.line,
+		minwidth = win_dims.base.standard_width,
+		minheight = win_dims.base.standard_height,
 	})
 	window_id = win_id
 
+	local prev_dims = preview_dimensions()
 	local _, prev_id = create_window({
 		title = 'Preview',
-		col = preview_slot.col,
-		line = preview_slot.line
+		col = prev_dims.col,
+		line = prev_dims.line,
+		minwidth = prev_dims.base.standard_width,
+		minheight = prev_dims.base.standard_height,
 	})
 	preview_window_id = prev_id
 
@@ -243,10 +276,11 @@ local function update_preview(opts)
 	if not window_ready(preview_window_id) or not bookmark then
 		return
 	end
+	local prev_dims = preview_dimensions()
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local lines = read_lines(bookmark.file, math.max(1, bookmark.line - (standard_height / 2)),
-		bookmark.line + (standard_height / 2))
+	local lines = read_lines(bookmark.file, math.max(1, bookmark.line - (prev_dims.base.standard_height / 2)),
+		bookmark.line + (prev_dims.base.standard_height / 2))
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
@@ -256,7 +290,7 @@ local function update_preview(opts)
 	end
 
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.floor(standard_height / 2), 0, -1)
+	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.floor(prev_dims.base.standard_height / 2), 0, -1)
 end
 
 ---@param opts UpdateWinOpts

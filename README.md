@@ -23,7 +23,7 @@ Neovim (**stable** only) >= 0.10.0
 ## Installation/Configuration
 Via [lazy](https://github.com/folke/lazy.nvim):
 ```lua
-require("lazy").setup({
+require('lazy').setup({
 	{
 		'EvWilson/spelunk.nvim',
 		dependencies = {
