@@ -282,8 +282,9 @@ local function update_preview(opts)
 	local prev_dims = preview_dimensions()
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local lines = read_lines(bookmark.file, math.max(1, bookmark.line - (prev_dims.base.standard_height / 2)),
-		bookmark.line + (prev_dims.base.standard_height / 2))
+	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.standard_height / 2)))
+	local endline = math.ceil(bookmark.line + (prev_dims.base.standard_height / 2))
+	local lines = read_lines(bookmark.file, startline, endline)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
