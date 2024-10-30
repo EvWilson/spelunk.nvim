@@ -59,8 +59,17 @@ end
 
 ---@param file string
 ---@param line integer
-local function goto_position(file, line)
-	vim.cmd('edit +' .. line .. ' ' .. file)
+---@param split string | nil
+local function goto_position(file, line, split)
+	if not split then
+		vim.cmd('edit +' .. line .. ' ' .. file)
+	elseif split == 'vertical' then
+		vim.cmd('vsplit +' .. line .. ' ' .. file)
+	elseif split == 'horizontal' then
+		vim.cmd('split +' .. line .. ' ' .. file)
+	else
+		print('[spelunk.nvim] goto_position passed unsupported split: ' .. split)
+	end
 end
 
 function M.toggle_window()
@@ -124,20 +133,29 @@ function M.move_bookmark(direction)
 end
 
 ---@param close boolean
-local function goto_bookmark(close)
+---@param split string | nil
+local function goto_bookmark(close, split)
 	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
 	if cursor_index > 0 and cursor_index <= #bookmarks then
 		if close then
 			M.close_windows()
 		end
 		vim.schedule(function()
-			goto_position(bookmarks[cursor_index].file, bookmarks[cursor_index].line)
+			goto_position(bookmarks[cursor_index].file, bookmarks[cursor_index].line, split)
 		end)
 	end
 end
 
 function M.goto_selected_bookmark()
 	goto_bookmark(true)
+end
+
+function M.goto_selected_bookmark_horizontal_split()
+	goto_bookmark(true, 'horizontal')
+end
+
+function M.goto_selected_bookmark_vertical_split()
+	goto_bookmark(true, 'vertical')
 end
 
 function M.delete_selected_bookmark()

@@ -169,28 +169,30 @@ function M.show_help()
 	local content = {
 		'Normal Mappings',
 		'---------------',
-		'Toggle UI         ' .. base_config.toggle,
-		'Add bookmark      ' .. base_config.add,
-		'Next bookmark     ' .. base_config.next_bookmark,
-		'Prev bookmark     ' .. base_config.prev_bookmark,
-		'Search bookmarks  ' .. base_config.search_bookmarks,
-		'Search stack      ' .. base_config.search_current_bookmarks,
+		'Toggle UI               ' .. base_config.toggle,
+		'Add bookmark            ' .. base_config.add,
+		'Next bookmark           ' .. base_config.next_bookmark,
+		'Prev bookmark           ' .. base_config.prev_bookmark,
+		'Search bookmarks        ' .. base_config.search_bookmarks,
+		'Search stack            ' .. base_config.search_current_bookmarks,
 		'',
 		'Window Mappings',
 		'---------------',
-		'Cursor down       ' .. window_config.cursor_down,
-		'Cursor up         ' .. window_config.cursor_up,
-		'Bookmark down     ' .. window_config.bookmark_down,
-		'Bookmark up       ' .. window_config.bookmark_up,
-		'Go to bookmark    ' .. window_config.goto_bookmark,
-		'Delete bookmark   ' .. window_config.delete_bookmark,
-		'Next stack        ' .. window_config.next_stack,
-		'Previous stack    ' .. window_config.previous_stack,
-		'New stack         ' .. window_config.new_stack,
-		'Delete stack      ' .. window_config.delete_stack,
-		'Edit stack        ' .. window_config.edit_stack,
-		'Close             ' .. window_config.close,
-		'Help              ' .. 'h',
+		'Cursor down             ' .. window_config.cursor_down,
+		'Cursor up               ' .. window_config.cursor_up,
+		'Bookmark down           ' .. window_config.bookmark_down,
+		'Bookmark up             ' .. window_config.bookmark_up,
+		'Go to bookmark          ' .. window_config.goto_bookmark,
+		'Go to bookmark, split   ' .. window_config.goto_bookmark_hsplit,
+		'Go to bookmark, vsplit  ' .. window_config.goto_bookmark_vsplit,
+		'Delete bookmark         ' .. window_config.delete_bookmark,
+		'Next stack              ' .. window_config.next_stack,
+		'Previous stack          ' .. window_config.previous_stack,
+		'New stack               ' .. window_config.new_stack,
+		'Delete stack            ' .. window_config.delete_stack,
+		'Edit stack              ' .. window_config.edit_stack,
+		'Close                   ' .. window_config.close,
+		'Help                    ' .. 'h',
 	}
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
@@ -243,6 +245,10 @@ function M.create_windows()
 	set(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>', '[spelunk.nvim] Move bookmark up')
 	set(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>',
 		'[spelunk.nvim] Go to selected bookmark')
+	set(window_config.goto_bookmark_hsplit, ':lua require("spelunk").goto_selected_bookmark_horizontal_split()<CR>',
+		'[spelunk.nvim] Go to selected bookmark, in new horizontal split')
+	set(window_config.goto_bookmark_vsplit, ':lua require("spelunk").goto_selected_bookmark_vertical_split()<CR>',
+		'[spelunk.nvim] Go to selected bookmark, in new vertical split')
 	set(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>',
 		'[spelunk.nvim] Delete selected bookmark')
 	set(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>', '[spelunk.nvim] Go to next stack')

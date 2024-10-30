@@ -68,6 +68,10 @@ Here's the default mapping object for reference:
 		bookmark_up = '<C-k',
 		-- Jump to the selected bookmark
 		goto_bookmark = '<CR>',
+		-- Jump to the selected bookmark in a new vertical split
+		goto_bookmark_hsplit = 'x',
+		-- Jump to the selected bookmark in a new horizontal split
+		goto_bookmark_vsplit = 'v',
 		-- Delete the selected bookmark
 		delete_bookmark = 'd',
 		-- Navigate to the next stack
@@ -152,6 +156,12 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `goto_selected_bookmark()`
 	- Description: navigate to the bookmark currently under the cursor in the UI
 
+- `goto_selected_bookmark_horizontal_split()`
+	- Description: navigate to the bookmark currently under the cursor in the UI, in a new horizontal split
+
+- `goto_selected_bookmark_vertical_split()`
+	- Description: navigate to the bookmark currently under the cursor in the UI, in a new vertical split
+
 - `delete_selected_bookmark()`
 	- Description: delete the bookmark currently under the cursor in the UI
 
@@ -185,4 +195,3 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	- Description: get the value that would be set in the status line for the Lualine integration
 	- Returns:
 		- `string`
-
