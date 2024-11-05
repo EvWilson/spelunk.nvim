@@ -34,7 +34,6 @@ local line_previewer = previewers.new_buffer_previewer({
 		vim.schedule(function()
 			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
 			-- Center the view on the line
-			vim.api.nvim_exec2('normal! zz', { output = false })
 			local top = vim.fn.line('w0', self.state.winid)
 			local bot = vim.fn.line('w$', self.state.winid)
 			local center = math.floor(top + (bot - top) / 2)
