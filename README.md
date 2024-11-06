@@ -14,6 +14,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Opt-in persistence of bookmarks on a per-directory basis
 - Togglable UI, with contextual and rebindable controls
 - Cycle bookmarks via keybind
+- Jump directly to bookmark by index
 - Telescope integration - fuzzy find over all bookmarks, or those in the current stack
 - Lualine integration - show the number of bookmarks in the current buffer
 
@@ -161,6 +162,11 @@ If there is functionality you'd like to see added or exposed, please feel free t
 
 - `goto_selected_bookmark_vertical_split()`
 	- Description: navigate to the bookmark currently under the cursor in the UI, in a new vertical split
+
+- `goto_bookmark_at_index(idx)`
+	- Description: navigate to the bookmark at the given index in the current stack
+	- Parameters:
+		- `idx` - `integer`: index of the bookmark to navigate to
 
 - `delete_selected_bookmark()`
 	- Description: delete the bookmark currently under the cursor in the UI

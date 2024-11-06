@@ -185,6 +185,7 @@ function M.show_help()
 		'Go to bookmark          ' .. window_config.goto_bookmark,
 		'Go to bookmark, split   ' .. window_config.goto_bookmark_hsplit,
 		'Go to bookmark, vsplit  ' .. window_config.goto_bookmark_vsplit,
+		'Go to bookmark at index ' .. '# of index',
 		'Delete bookmark         ' .. window_config.delete_bookmark,
 		'Next stack              ' .. window_config.next_stack,
 		'Previous stack          ' .. window_config.previous_stack,
