@@ -110,9 +110,9 @@ A default integration with [lualine](https://github.com/nvim-lualine/lualine.nvi
     config = function()
       require('lualine').setup {
         sections = {
-          lualine_b = {
-            'spelunk'
-          },
+          lualine_b = { 'spelunk' },
+	  -- Or, added to the default lualine_b config from here: https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#default-configuration
+          -- lualine_b = { 'branch', 'diff', 'diagnostics', 'spelunk' },
         },
       }
     end

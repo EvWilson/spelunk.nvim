@@ -296,8 +296,7 @@ local function update_preview(opts)
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.standard_height / 2)))
-	local endline = math.ceil(bookmark.line + (prev_dims.base.standard_height / 2))
-	local lines = read_lines(bookmark.file, startline, endline)
+	local lines = read_lines(bookmark.file, startline, startline + prev_dims.base.standard_height)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
@@ -307,7 +306,7 @@ local function update_preview(opts)
 	end
 
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', math.floor(prev_dims.base.standard_height / 2), 0, -1)
+	vim.api.nvim_buf_add_highlight(bufnr, -1, 'Search', bookmark.line - startline, 0, -1)
 end
 
 ---@param opts UpdateWinOpts
