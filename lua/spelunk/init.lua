@@ -37,10 +37,22 @@ local function current_bookmark()
 	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
 end
 
+---@return integer
+local function max_stack_size()
+	local max = 0
+	for _, stack in ipairs(bookmark_stacks) do
+		local size = tbllen(stack.bookmarks)
+		if size > max then
+			max = size
+		end
+	end
+	return max
+end
+
 ---@return UpdateWinOpts
 local function get_win_update_opts()
 	local lines = {}
-	for i, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
+	for _, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
 		local display = string.format('%s:%d', vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
 		table.insert(lines, display)
 	end
@@ -49,6 +61,7 @@ local function get_win_update_opts()
 		title = current_stack().name,
 		lines = lines,
 		bookmark = current_bookmark(),
+		max_stack_size = max_stack_size(),
 	}
 end
 
@@ -143,6 +156,16 @@ local function goto_bookmark(close, split)
 			goto_position(bookmarks[cursor_index].file, bookmarks[cursor_index].line, split)
 		end)
 	end
+end
+
+---@param idx integer
+function M.goto_bookmark_at_index(idx)
+	if idx < 1 or idx > tbllen(bookmark_stacks[current_stack_index].bookmarks) then
+		print('[spelunk.nvim] Given invalid index: ' .. idx)
+		return
+	end
+	cursor_index = idx
+	goto_bookmark(true)
 end
 
 function M.goto_selected_bookmark()

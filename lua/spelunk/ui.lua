@@ -214,7 +214,8 @@ function M.close_help()
 	vim.api.nvim_win_close(help_window_id, true)
 end
 
-function M.create_windows()
+---@param max_stack_size integer
+function M.create_windows(max_stack_size)
 	local win_dims = bookmark_dimensions()
 	local bufnr, win_id = create_window({
 		title = 'Bookmarks',
@@ -260,6 +261,11 @@ function M.create_windows()
 		'[spelunk.nvim] Edit the name of the current stack')
 	set(window_config.close, ':lua require("spelunk").close_windows()<CR>', '[spelunk.nvim] Close UI')
 	set('h', ':lua require("spelunk").show_help()<CR>', '[spelunk.nvim] Show help menu')
+
+	for i = 1, max_stack_size do
+		set(tostring(i), string.format(':lua require("spelunk").goto_bookmark_at_index(%d)<CR>', i),
+			string.format('[spelunk.nvim] Go to bookmark at stack position %d', i))
+	end
 
 	focus_cb, unfocus_cb = persist_focus(win_id, function()
 		if window_ready(window_id) then
@@ -337,7 +343,7 @@ function M.toggle_window(opts)
 	if window_ready(window_id) then
 		M.close_windows()
 	else
-		local _ = M.create_windows()
+		local _ = M.create_windows(opts.max_stack_size)
 		M.update_window(opts)
 		vim.api.nvim_set_current_win(window_id)
 	end

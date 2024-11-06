@@ -16,6 +16,7 @@
 ---@field title string
 ---@field lines string[]
 ---@field bookmark Bookmark
+---@field max_stack_size integer
 
 ---@class BaseDimensions
 ---@field col_width integer
