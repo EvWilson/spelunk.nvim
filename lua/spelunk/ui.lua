@@ -311,7 +311,12 @@ function M.update_window(opts)
 
 	local bufnr = vim.api.nvim_win_get_buf(window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local content = { 'Current stack: ' .. opts.title, unpack(opts.lines) }
+	local content_lines = {}
+	for idx, line in ipairs(opts.lines) do
+		local prefix = idx == opts.cursor_index and '>' or ' '
+		table.insert(content_lines, string.format('%s%2d %s', prefix, idx, line))
+	end
+	local content = { 'Current stack: ' .. opts.title, unpack(content_lines) }
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 

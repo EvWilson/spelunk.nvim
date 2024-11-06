@@ -41,8 +41,7 @@ end
 local function get_win_update_opts()
 	local lines = {}
 	for i, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
-		local prefix = i == cursor_index and '> ' or '  '
-		local display = string.format('%s%s:%d', prefix, vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
+		local display = string.format('%s:%d', vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
 		table.insert(lines, display)
 	end
 	return {
