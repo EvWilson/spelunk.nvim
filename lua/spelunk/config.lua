@@ -24,6 +24,7 @@ local default_config = {
 		delete_stack = 'D',
 		edit_stack = 'E',
 		close = 'q',
+		help = 'h',
 	},
 	enable_persist = false,
 	statusline_prefix = '🔖',
