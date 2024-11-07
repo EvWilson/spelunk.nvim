@@ -194,6 +194,7 @@ function M.show_help()
 		'Edit stack              ' .. window_config.edit_stack,
 		'Close                   ' .. window_config.close,
 		'Help                    ' .. 'h',
+		'Help                    ' .. window_config.help,
 	}
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
