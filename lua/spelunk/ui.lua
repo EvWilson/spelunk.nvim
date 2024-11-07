@@ -193,7 +193,6 @@ function M.show_help()
 		'Delete stack            ' .. window_config.delete_stack,
 		'Edit stack              ' .. window_config.edit_stack,
 		'Close                   ' .. window_config.close,
-		'Help                    ' .. 'h',
 		'Help                    ' .. window_config.help,
 	}
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
