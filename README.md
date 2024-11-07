@@ -88,7 +88,7 @@ Here's the default mapping object for reference:
 		-- Close the UI
 		close = 'q',
 		-- Open the help menu
-		help = 'h', -- Not rebindable
+		help = 'h',
 	},
 	-- Flag to enable directory-scoped bookmark persistence
 	enable_persist = false,
