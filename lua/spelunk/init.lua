@@ -37,6 +37,11 @@ local function current_bookmark()
 	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
 end
 
+---@type fun(abspath: string): string
+M.filename_formatter = function(abspath)
+	return vim.fn.fnamemodify(abspath, ':~:.')
+end
+
 ---@return integer
 local function max_stack_size()
 	local max = 0
@@ -53,7 +58,7 @@ end
 local function get_win_update_opts()
 	local lines = {}
 	for _, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
-		local display = string.format('%s:%d', vim.fn.fnamemodify(bookmark.file, ':~:.'), bookmark.line)
+		local display = string.format('%s:%d', M.filename_formatter(bookmark.file), bookmark.line)
 		table.insert(lines, display)
 	end
 	return {

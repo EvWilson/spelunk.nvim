@@ -7,15 +7,7 @@ local previewers = require('telescope.previewers')
 
 local M = {}
 
-local function strip_prefix()
-	local cwd = vim.fn.getcwd() .. '/'
-	---@param str string
-	return function(str)
-		if string.sub(str, 1, #cwd) == cwd then
-			return string.sub(str, #cwd + 1)
-		end
-	end
-end
+local strip_prefix = require('spelunk').filename_formatter
 
 local line_previewer = previewers.new_buffer_previewer({
 	title = 'Preview',
@@ -47,14 +39,13 @@ local line_previewer = previewers.new_buffer_previewer({
 ---@param cb function
 M.search_stacks = function(prompt, data, cb)
 	local opts = {}
-	local strip = strip_prefix()
 
 	pickers.new(opts, {
 		prompt_title = prompt,
 		finder = finders.new_table {
 			results = data,
 			entry_maker = function(entry)
-				local display_str = string.format('%s.%s:%d', entry.stack, strip(entry.file), entry.line)
+				local display_str = string.format('%s.%s:%d', entry.stack, strip_prefix(entry.file), entry.line)
 				return {
 					value = entry,
 					display = display_str,

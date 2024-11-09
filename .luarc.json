@@ -1,0 +1,17 @@
+{
+    "runtime": {
+        "version": "LuaJIT",
+        "special": {
+            "vim": "require"
+        }
+    },
+    "workspace": {
+        "library": [
+            "/opt/homebrew/share/nvim/runtime/lua",
+            "/opt/homebrew/share/nvim/runtime/lua/vim/lsp"
+        ]
+    },
+    "diagnostics": {
+        "globals": ["vim"]
+    }
+}

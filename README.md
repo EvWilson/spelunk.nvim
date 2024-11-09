@@ -130,6 +130,16 @@ require('spelunk').setup(opts)
 
 If there is functionality you'd like to see added or exposed, please feel free to open an issue!
 
+- `filename_formatter`
+	- Description: function determining how to format bookmark file names for display
+	- Type: `fun(abspath: string): string`
+	- Default value:
+	```lua
+	function(abspath)
+		return vim.fn.fnamemodify(abspath, ':~:.')
+	end
+	```
+
 - `setup(config)`
 	- Description: initialize the plugin, should be called to opt-in to default behavior
 	- Parameters:
@@ -201,3 +211,6 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	- Description: get the value that would be set in the status line for the Lualine integration
 	- Returns:
 		- `string`
+
+### API Questions?
+Some examples are available in th [`faqs`](faqs/) directory. If there's something you'd like to know how to do, please open an issue and we can see about implementing it!
