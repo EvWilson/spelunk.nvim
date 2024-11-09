@@ -7,8 +7,6 @@ local previewers = require('telescope.previewers')
 
 local M = {}
 
-local strip_prefix = require('spelunk').filename_formatter
-
 local line_previewer = previewers.new_buffer_previewer({
 	title = 'Preview',
 	get_buffer_by_name = function(_, entry)
@@ -35,7 +33,7 @@ local line_previewer = previewers.new_buffer_previewer({
 })
 
 ---@param prompt string
----@param data any
+---@param data FullBookmark
 ---@param cb function
 M.search_stacks = function(prompt, data, cb)
 	local opts = {}
@@ -45,7 +43,7 @@ M.search_stacks = function(prompt, data, cb)
 		finder = finders.new_table {
 			results = data,
 			entry_maker = function(entry)
-				local display_str = string.format('%s.%s:%d', entry.stack, strip_prefix(entry.file), entry.line)
+				local display_str = require('spelunk.util').full_bookmark_to_string(entry)
 				return {
 					value = entry,
 					display = display_str,

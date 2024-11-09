@@ -2,6 +2,11 @@
 ---@field file string
 ---@field line integer
 
+---@class FullBookmark
+---@field stack string
+---@field file string
+---@field line integer
+
 ---@alias BookmarkStack table<string, Bookmark[]>
 
 ---@class CreateWinOpts

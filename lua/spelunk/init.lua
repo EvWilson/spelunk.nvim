@@ -38,9 +38,7 @@ local function current_bookmark()
 end
 
 ---@type fun(abspath: string): string
-M.filename_formatter = function(abspath)
-	return vim.fn.fnamemodify(abspath, ':~:.')
-end
+M.filename_formatter = require('spelunk.util').filename_formatter
 
 ---@return integer
 local function max_stack_size()
@@ -258,7 +256,8 @@ function M.persist()
 	end
 end
 
-function M.search_marks()
+---@return FullBookmark[]
+function M.all_full_marks()
 	local data = {}
 	for _, stack in ipairs(bookmark_stacks) do
 		for _, mark in ipairs(stack.bookmarks) do
@@ -269,10 +268,15 @@ function M.search_marks()
 			})
 		end
 	end
-	require('spelunk.telescope').search_stacks('[spelunk.nvim] Bookmarks', data, goto_position)
+	return data
 end
 
-function M.search_current_marks()
+function M.search_marks()
+	require('spelunk.telescope').search_stacks('[spelunk.nvim] Bookmarks', M.all_full_marks(), goto_position)
+end
+
+---@return FullBookmark[]
+function M.current_full_marks()
 	local data = {}
 	local stack = current_stack()
 	for _, mark in ipairs(stack.bookmarks) do
@@ -282,7 +286,11 @@ function M.search_current_marks()
 			line = mark.line,
 		})
 	end
-	require('spelunk.telescope').search_stacks('[spelunk.nvim] Current Stack', data, goto_position)
+	return data
+end
+
+function M.search_current_marks()
+	require('spelunk.telescope').search_stacks('[spelunk.nvim] Current Stack', M.current_full_marks(), goto_position)
 end
 
 ---@return string

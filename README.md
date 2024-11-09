@@ -212,5 +212,15 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	- Returns:
 		- `string`
 
+- `all_full_marks()`
+	- Description: return all marks
+	- Returns:
+		- `FullBookmark[]` (see [types.lua](lua/spelunk/types.lua))
+
+- `current_full_marks()`
+	- Description: return all marks in the current stack
+	- Returns:
+		- `FullBookmark[]`
+
 ### API Questions?
 Some examples are available in th [`faqs`](faqs/) directory. If there's something you'd like to know how to do, please open an issue and we can see about implementing it!
