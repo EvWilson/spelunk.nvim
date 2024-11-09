@@ -222,6 +222,9 @@ function M.edit_current_stack()
 		return
 	end
 	local name = vim.fn.input('[spelunk.nvim] Enter new name for the stack: ', stack.name)
+	if name == '' then
+		return
+	end
 	bookmark_stacks[current_stack_index].name = name
 	update_window()
 	M.persist()
