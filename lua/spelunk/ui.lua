@@ -128,8 +128,8 @@ function M.show_help()
 		title = "Help - exit with 'q'",
 		col = dims.col,
 		line = dims.line,
-		minwidth = dims.base.standard_width,
-		minheight = dims.base.standard_height,
+		minwidth = dims.base.width,
+		minheight = dims.base.height,
 	})
 
 	local content = {
@@ -188,8 +188,8 @@ function M.create_windows(max_stack_size)
 		title = 'Bookmarks',
 		col = win_dims.col,
 		line = win_dims.line,
-		minwidth = win_dims.base.standard_width,
-		minheight = win_dims.base.standard_height,
+		minwidth = win_dims.base.width,
+		minheight = win_dims.base.height,
 	})
 	window_id = win_id
 
@@ -198,8 +198,8 @@ function M.create_windows(max_stack_size)
 		title = 'Preview',
 		col = prev_dims.col,
 		line = prev_dims.line,
-		minwidth = prev_dims.base.standard_width,
-		minheight = prev_dims.base.standard_height,
+		minwidth = prev_dims.base.width,
+		minheight = prev_dims.base.height,
 	})
 	preview_window_id = prev_id
 
@@ -261,8 +261,8 @@ local function update_preview(opts)
 	local prev_dims = layout.preview_dimensions()
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
-	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.standard_height / 2)))
-	local lines = read_lines(bookmark.file, startline, startline + prev_dims.base.standard_height)
+	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.height / 2)))
+	local lines = read_lines(bookmark.file, startline, startline + prev_dims.base.height)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 

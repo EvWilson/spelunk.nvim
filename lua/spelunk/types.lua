@@ -24,9 +24,8 @@
 ---@field max_stack_size integer
 
 ---@class BaseDimensions
----@field col_width integer
----@field standard_width integer
----@field standard_height integer
+---@field width integer
+---@field height integer
 
 ---@class WindowCoords
 ---@field base BaseDimensions
