@@ -28,6 +28,7 @@ local default_config = {
 	},
 	enable_persist = false,
 	statusline_prefix = '🔖',
+	orientation = 'vertical',
 }
 
 ---@param target table

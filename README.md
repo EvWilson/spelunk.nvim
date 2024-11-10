@@ -66,7 +66,7 @@ Here's the default mapping object for reference:
 		-- Move the current bookmark down in the stack
 		bookmark_down = '<C-j>',
 		-- Move the current bookmark up in the stack
-		bookmark_up = '<C-k',
+		bookmark_up = '<C-k>',
 		-- Jump to the selected bookmark
 		goto_bookmark = '<CR>',
 		-- Jump to the selected bookmark in a new vertical split
@@ -95,6 +95,9 @@ Here's the default mapping object for reference:
 	-- Prefix for the Lualine integration
 	-- (Change this if your terminal emulator lacks emoji support)
 	statusline_prefix = '🔖',
+	-- Set UI orientation
+	-- Type: 'vertical' | 'horizontal'
+	orientation = 'vertical',
 }
 ```
 

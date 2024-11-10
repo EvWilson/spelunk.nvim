@@ -1,3 +1,4 @@
+local layout = require('spelunk.layout')
 local popup = require('plenary.popup')
 
 local M = {}
@@ -9,6 +10,11 @@ local preview_window_id = -1
 ---@type integer
 local help_window_id = -1
 
+---@return boolean
+function M.is_open()
+	return window_id ~= -1 or preview_window_id ~= -1 or help_window_id ~= -1
+end
+
 local base_config
 local window_config
 
@@ -16,46 +22,6 @@ local focus_cb
 local unfocus_cb
 
 local border_chars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
-
----@return BaseDimensions
-local function base_dimensions()
-	local width_portion = math.floor(vim.o.columns / 20)
-	return {
-		col_width = width_portion,
-		standard_width = math.floor(width_portion * 8),
-		standard_height = math.floor(vim.o.lines * 0.7),
-	}
-end
-
----@return WindowCoords
-local function bookmark_dimensions()
-	local dims = base_dimensions()
-	return {
-		base = dims,
-		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2),
-		col = dims.col_width
-	}
-end
-
----@return WindowCoords
-local function preview_dimensions()
-	local dims = base_dimensions()
-	return {
-		base = dims,
-		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2),
-		col = dims.col_width * 11,
-	}
-end
-
----@return WindowCoords
-local function help_dimensions()
-	local dims = base_dimensions()
-	return {
-		base = dims,
-		line = math.floor(vim.o.lines / 2) - math.floor(dims.standard_height / 2) - 2,
-		col = dims.col_width * 6,
-	}
-end
 
 ---@param id integer
 local function window_ready(id)
@@ -157,7 +123,7 @@ end
 function M.show_help()
 	unfocus_cb()
 
-	local dims = help_dimensions()
+	local dims = layout.help_dimensions()
 	local bufnr, win_id = create_window({
 		title = "Help - exit with 'q'",
 		col = dims.col,
@@ -217,7 +183,7 @@ end
 
 ---@param max_stack_size integer
 function M.create_windows(max_stack_size)
-	local win_dims = bookmark_dimensions()
+	local win_dims = layout.bookmark_dimensions()
 	local bufnr, win_id = create_window({
 		title = 'Bookmarks',
 		col = win_dims.col,
@@ -227,7 +193,7 @@ function M.create_windows(max_stack_size)
 	})
 	window_id = win_id
 
-	local prev_dims = preview_dimensions()
+	local prev_dims = layout.preview_dimensions()
 	local _, prev_id = create_window({
 		title = 'Preview',
 		col = prev_dims.col,
@@ -292,7 +258,7 @@ local function update_preview(opts)
 	if not window_ready(preview_window_id) or not bookmark then
 		return
 	end
-	local prev_dims = preview_dimensions()
+	local prev_dims = layout.preview_dimensions()
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.standard_height / 2)))
