@@ -3,7 +3,7 @@ local persist = require('spelunk.persistence')
 
 local M = {}
 
----@type BookmarkStack
+---@type BookmarkStack[]
 local default_stacks = {
 	{ name = 'Default', bookmarks = {} }
 }
@@ -336,6 +336,9 @@ function M.setup(c)
 	if not bookmark_stacks then
 		bookmark_stacks = default_stacks
 	end
+
+	-- EAW TODO mark workspace
+	require('spelunk.mark').setup(bookmark_stacks)
 
 	-- Configure the prefix to use for the lualine integration
 	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')

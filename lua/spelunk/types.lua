@@ -1,13 +1,17 @@
 ---@class Bookmark
 ---@field file string
 ---@field line integer
+---@field col integer
 
 ---@class FullBookmark
 ---@field stack string
 ---@field file string
 ---@field line integer
+---@field col integer
 
----@alias BookmarkStack table<string, Bookmark[]>
+---@class BookmarkStack
+---@field name string
+---@field bookmarks Bookmark[]
 
 ---@class CreateWinOpts
 ---@field title string
