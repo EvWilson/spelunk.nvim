@@ -1,4 +1,4 @@
----@class Bookmark
+---@class PhysicalBookmark
 ---@field file string
 ---@field line integer
 ---@field col integer
@@ -9,9 +9,17 @@
 ---@field line integer
 ---@field col integer
 
----@class BookmarkStack
+---@class PhysicalStack
 ---@field name string
----@field bookmarks Bookmark[]
+---@field bookmarks PhysicalBookmark[]
+---
+---@class VirtualBookmark
+---@field bufnr integer
+---@field mark_id integer
+
+---@class VirtualStack
+---@field name string
+---@field bookmarks VirtualBookmark[]
 
 ---@class CreateWinOpts
 ---@field title string
