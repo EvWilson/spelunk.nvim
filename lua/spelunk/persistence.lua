@@ -116,9 +116,8 @@ end
 ---@return PhysicalStack[] | nil
 function M.load()
 	local tbl = loadtbl(path)
-
 	if tbl == nil then
-		return
+		return nil
 	end
 
 	-- TODO: Remove this eventually
