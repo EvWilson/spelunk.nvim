@@ -367,10 +367,7 @@ function M.setup(c)
 	-- Configure the prefix to use for the lualine integration
 	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')
 
-	local set = function(key, cmd, description)
-		vim.keymap.set('n', key, cmd,
-			{ desc = description, noremap = true, silent = true })
-	end
+	local set = cfg.set_keymap
 	set(base_config.toggle, M.toggle_window, '[spelunk.nvim] Toggle UI')
 	set(base_config.add, M.add_bookmark, '[spelunk.nvim] Add bookmark')
 	set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',

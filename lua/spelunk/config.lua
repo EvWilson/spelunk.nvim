@@ -1,5 +1,7 @@
 local M = {}
 
+local skipkey = 'NONE'
+
 local default_config = {
 	base_mappings = {
 		toggle = '<leader>bt',
@@ -58,5 +60,30 @@ end
 M.get_default = function(key)
 	return default_config[key]
 end
+
+---@param key string
+---@param cmd string | function
+---@param description string
+M.set_keymap = function(key, cmd, description)
+	if key == skipkey then
+		return
+	end
+	vim.keymap.set('n', key, cmd,
+		{ desc = description, noremap = true, silent = true })
+end
+
+---@param bufnr integer
+M.set_buf_keymap = function(bufnr)
+	---@param key string
+	---@param func string
+	---@param description string
+	return function(key, func, description)
+		if key == skipkey then
+			return
+		end
+		vim.api.nvim_buf_set_keymap(bufnr, 'n', key, func, { noremap = true, silent = true, desc = description })
+	end
+end
+
 
 return M

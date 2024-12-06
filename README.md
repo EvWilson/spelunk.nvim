@@ -104,6 +104,8 @@ Here's the default mapping object for reference:
 }
 ```
 
+Want to not set a keybind for a given action? Set the bound value to `'NONE'` and it will skip being set.
+
 Check the mentioned help screen to see current keybinds and their use:
 
 ![Help](assets/help.png)
