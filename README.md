@@ -97,7 +97,9 @@ Here's the default mapping object for reference:
 	-- (Change this if your terminal emulator lacks emoji support)
 	statusline_prefix = '🔖',
 	-- Set UI orientation
-	-- Type: 'vertical' | 'horizontal'
+	-- Type: 'vertical' | 'horizontal' | LayoutProvider
+	-- Advanced customization: you may set your own layout provider for fine-grained control over layout
+	-- See `types.lua` and `layout.lua` for guidance on setting this up
 	orientation = 'vertical',
 	-- Enable to show mark index in status column
 	enable_status_col_display = false,

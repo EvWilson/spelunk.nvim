@@ -1,15 +1,7 @@
 local M = {}
 
----@type 'vertical' | 'horizontal'
+---@type 'vertical' | 'horizontal' | LayoutProvider
 local orientation
-
----@param o 'vertical' | 'horizontal'
-function M.setup(o)
-	if o ~= 'vertical' and o ~= 'horizontal' then
-		error('[spelunk.nvim] Layout engine passed an unsupported orientation: ' .. o)
-	end
-	orientation = o
-end
 
 ---@return integer
 local function width_portion()
@@ -42,7 +34,7 @@ function M.base_dimensions()
 end
 
 ---@return WindowCoords
-function M.bookmark_dimensions()
+local bookmark_dimension_func = function()
 	local dims = M.base_dimensions()
 	if vert() then
 		return {
@@ -60,7 +52,7 @@ function M.bookmark_dimensions()
 end
 
 ---@return WindowCoords
-function M.preview_dimensions()
+local preview_dimension_func = function()
 	local dims = M.base_dimensions()
 	if vert() then
 		return {
@@ -78,7 +70,7 @@ function M.preview_dimensions()
 end
 
 ---@return WindowCoords
-function M.help_dimensions()
+local help_dimension_func = function()
 	local dims = M.base_dimensions()
 	if vert() then
 		return {
@@ -93,6 +85,23 @@ function M.help_dimensions()
 			col = width_portion() * 2,
 		}
 	end
+end
+
+---@param o 'vertical' | 'horizontal' | LayoutProvider
+function M.setup(o)
+	if o ~= 'vertical' and o ~= 'horizontal' and type(o) ~= 'table' then
+		error('[spelunk.nvim] Layout engine passed an unsupported orientation: ' .. vim.inspect(o))
+	end
+	if type(o) == 'string' then
+		M.bookmark_dimensions = bookmark_dimension_func
+		M.preview_dimensions = preview_dimension_func
+		M.help_dimensions = help_dimension_func
+	else
+		M.bookmark_dimensions = o.bookmark_dimensions
+		M.preview_dimensions = o.preview_dimensions
+		M.help_dimensions = o.help_dimensions
+	end
+	orientation = o
 end
 
 return M

@@ -43,3 +43,8 @@
 ---@field base BaseDimensions
 ---@field line integer
 ---@field col integer
+
+---@class LayoutProvider
+---@field bookmark_dimensions fun(): WindowCoords
+---@field preview_dimensions fun(): WindowCoords
+---@field help_dimensions fun(): WindowCoords
