@@ -21,6 +21,7 @@ local window_config
 local focus_cb
 local unfocus_cb
 
+---@type string[]
 local border_chars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
 
 ---@param id integer
@@ -254,7 +255,7 @@ end
 
 ---@param opts UpdateWinOpts
 local function update_preview(opts)
-	local bookmark = opts.bookmark
+	local bookmark = require('spelunk.mark').virt_to_physical(opts.bookmark)
 	if not window_ready(preview_window_id) or not bookmark then
 		return
 	end
@@ -266,7 +267,7 @@ local function update_preview(opts)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
-	local ft = vim.filetype.match({ filename = opts.bookmark.file })
+	local ft = vim.filetype.match({ filename = bookmark.file })
 	if ft then
 		vim.bo[bufnr].filetype = ft
 	end

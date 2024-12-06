@@ -32,7 +32,7 @@
 ---@field cursor_index integer
 ---@field title string
 ---@field lines string[]
----@field bookmark Bookmark
+---@field bookmark VirtualBookmark
 ---@field max_stack_size integer
 
 ---@class BaseDimensions

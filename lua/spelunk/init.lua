@@ -1,13 +1,14 @@
 local ui = require('spelunk.ui')
 local persist = require('spelunk.persistence')
+local marks = require('spelunk.mark')
 
 local M = {}
 
----@type BookmarkStack[]
+---@type VirtualStack[]
 local default_stacks = {
 	{ name = 'Default', bookmarks = {} }
 }
----@type BookmarkStack
+---@type VirtualStack[]
 local bookmark_stacks
 ---@type integer
 local current_stack_index = 1
@@ -23,16 +24,19 @@ local enable_persist
 local statusline_prefix
 
 ---@param tbl table
+---@return integer
 local function tbllen(tbl)
 	local count = 0
 	for _ in pairs(tbl) do count = count + 1 end
 	return count
 end
 
+---@return VirtualStack
 local function current_stack()
 	return bookmark_stacks[current_stack_index]
 end
 
+---@return VirtualBookmark
 local function current_bookmark()
 	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
 end
@@ -55,7 +59,8 @@ end
 ---@return UpdateWinOpts
 local function get_win_update_opts()
 	local lines = {}
-	for _, bookmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
+	for _, vmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
+		local bookmark = marks.virt_to_physical(vmark)
 		local display = string.format('%s:%d', M.filename_formatter(bookmark.file), bookmark.line)
 		table.insert(lines, display)
 	end
@@ -106,7 +111,8 @@ end
 function M.add_bookmark()
 	local current_file = vim.fn.expand('%:p')
 	local current_line = vim.fn.line('.')
-	table.insert(bookmark_stacks[current_stack_index].bookmarks, { file = current_file, line = current_line })
+	local vmark = marks.set_mark_current_pos()
+	table.insert(bookmark_stacks[current_stack_index].bookmarks, vmark)
 	print("[spelunk.nvim] Bookmark added to stack '" ..
 		bookmark_stacks[current_stack_index].name .. "': " .. current_file .. ":" .. current_line)
 	update_window()
@@ -150,13 +156,14 @@ end
 ---@param close boolean
 ---@param split string | nil
 local function goto_bookmark(close, split)
-	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
+	local bookmarks = current_stack().bookmarks
+	local mark = marks.virt_to_physical(current_bookmark())
 	if cursor_index > 0 and cursor_index <= #bookmarks then
 		if close then
 			M.close_windows()
 		end
 		vim.schedule(function()
-			goto_position(bookmarks[cursor_index].file, bookmarks[cursor_index].line, split)
+			goto_position(mark.file, mark.line, split)
 		end)
 	end
 end
@@ -266,7 +273,8 @@ end
 function M.all_full_marks()
 	local data = {}
 	for _, stack in ipairs(bookmark_stacks) do
-		for _, mark in ipairs(stack.bookmarks) do
+		for _, vmark in ipairs(stack.bookmarks) do
+			local mark = marks.virt_to_physical(vmark)
 			table.insert(data, {
 				stack = stack.name,
 				file = mark.file,
@@ -285,7 +293,8 @@ end
 function M.current_full_marks()
 	local data = {}
 	local stack = current_stack()
-	for _, mark in ipairs(stack.bookmarks) do
+	for _, vmark in ipairs(stack.bookmarks) do
+		local mark = marks.virt_to_physical(vmark)
 		table.insert(data, {
 			stack = stack.name,
 			file = mark.file,
@@ -304,7 +313,8 @@ function M.statusline()
 	local count = 0
 	local path = vim.fn.expand('%:p')
 	for _, stack in ipairs(bookmark_stacks) do
-		for _, mark in ipairs(stack.bookmarks) do
+		for _, vmark in ipairs(stack.bookmarks) do
+			local mark = marks.virt_to_physical(vmark)
 			if mark.file == path then
 				count = count + 1
 			end
@@ -326,19 +336,19 @@ function M.setup(c)
 
 	-- Load saved bookmarks, if enabled and available
 	-- Otherwise, set defaults
+	---@type PhysicalStack[]
+	local physical_stacks
 	enable_persist = conf.enable_persist or cfg.get_default('enable_persist')
 	if enable_persist then
 		local saved = persist.load()
 		if saved then
-			bookmark_stacks = saved
+			physical_stacks = saved
+		else
+			physical_stacks = default_stacks
 		end
 	end
-	if not bookmark_stacks then
-		bookmark_stacks = default_stacks
-	end
 
-	-- EAW TODO mark workspace
-	require('spelunk.mark').setup(bookmark_stacks)
+	bookmark_stacks = marks.setup(physical_stacks)
 
 	-- Configure the prefix to use for the lualine integration
 	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')

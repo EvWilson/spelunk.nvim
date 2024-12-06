@@ -1,6 +1,10 @@
 local M = {}
 
-local state_dir = vim.fs.joinpath(vim.fn.stdpath('state'), 'spelunk')
+local statepath = vim.fn.stdpath('state')
+if type(statepath) == 'table' then
+	statepath = statepath[1]
+end
+local state_dir = vim.fs.joinpath(statepath, 'spelunk')
 local cwd_str = (vim.fn.getcwd() .. '.lua'):gsub('[/\\:*?\"<>|]', '_')
 local path = vim.fs.joinpath(state_dir, cwd_str)
 
@@ -12,7 +16,7 @@ end
 -- savetbl and loadtbl taken from:
 -- http://lua-users.org/wiki/SaveTableToFile
 
----@param tbl BookmarkStack
+---@param tbl PhysicalStack[]
 ---@param filename string
 local function savetbl(tbl, filename)
 	local charS, charE = '   ', '\n'
@@ -78,7 +82,7 @@ local function savetbl(tbl, filename)
 	file:close()
 end
 
----@return BookmarkStack | nil
+---@return PhysicalStack[] | nil
 local function loadtbl(sfile)
 	local ftables, err = loadfile(sfile)
 	if err then return nil end
@@ -101,7 +105,7 @@ local function loadtbl(sfile)
 	return tables[1]
 end
 
----@param tbl BookmarkStack
+---@param tbl PhysicalStack[]
 function M.save(tbl)
 	if vim.fn.isdirectory(state_dir) == 0 then
 		vim.fn.mkdir(state_dir, 'p')
@@ -109,9 +113,24 @@ function M.save(tbl)
 	savetbl(tbl, path)
 end
 
----@return BookmarkStack | nil
+---@return PhysicalStack[] | nil
 function M.load()
 	local tbl = loadtbl(path)
+
+	if tbl == nil then
+		return
+	end
+
+	-- TODO: Remove this eventually
+	-- Stored marks did not originally have column field, this is a soft migration helper
+	for _, v in pairs(tbl) do
+		for _, mark in pairs(v.bookmarks) do
+			if mark.col == nil then
+				mark.col = 0
+			end
+		end
+	end
+
 	return tbl
 end
 
