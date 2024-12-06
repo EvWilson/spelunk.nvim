@@ -374,6 +374,28 @@ function M.setup(c)
 		'[spelunk.nvim] Fuzzy find bookmarks')
 	set(base_config.search_current_bookmarks, tele.extensions.spelunk.current_marks,
 		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
+
+	-- Create a callback to persist changes to mark locations on file updates
+	local persist_augroup = vim.api.nvim_create_augroup('SpelunkPersistCallback', { clear = true })
+	vim.api.nvim_create_autocmd('BufWritePost', {
+		group = persist_augroup,
+		pattern = '*',
+		callback = function(ctx)
+			local bufnr = ctx.buf
+			if not bufnr then
+				return
+			end
+			for _, stack in pairs(bookmark_stacks) do
+				for _, mark in pairs(stack.bookmarks) do
+					if bufnr == mark.bufnr then
+						M.persist()
+						return
+					end
+				end
+			end
+		end,
+		desc = '[spelunk.nvim] Persist mark updates on file change'
+	})
 end
 
 return M
