@@ -28,14 +28,14 @@ M.virt_to_physical_stack = function(virtstacks)
 	return ret
 end
 
+---@param mark PhysicalBookmark
 ---@return VirtualBookmark
-M.set_mark_current_pos = function()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local line = vim.fn.line('.')
-	local col = vim.fn.col('.')
-	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, line, col, {
-		strict = false, -- Allow the mark to move with edits
-		right_gravity = true, -- Mark stays at end of inserted text
+local set_mark = function(mark)
+	local bufnr = vim.fn.bufadd(mark.file)
+	vim.fn.bufload(bufnr)
+	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, mark.line, mark.col, {
+		strict = false,
+		right_gravity = true,
 	})
 	return {
 		bufnr = bufnr,
@@ -43,19 +43,13 @@ M.set_mark_current_pos = function()
 	}
 end
 
----@param mark PhysicalBookmark
 ---@return VirtualBookmark
-local set_mark = function(mark)
-	local bufnr = vim.fn.bufadd(mark.file)
-	vim.fn.bufload(bufnr)
-	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, mark.line, mark.col, {
-		strict = false, -- Allow the mark to move with edits
-		right_gravity = true, -- Mark stays at end of inserted text
+M.set_mark_current_pos = function()
+	return set_mark({
+		file = vim.api.nvim_buf_get_name(0),
+		line = vim.fn.line('.'),
+		col = vim.fn.col('.'),
 	})
-	return {
-		bufnr = bufnr,
-		mark_id = mark_id,
-	}
 end
 
 ---@param stacks PhysicalStack[]

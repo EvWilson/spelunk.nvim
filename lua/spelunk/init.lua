@@ -80,13 +80,16 @@ end
 ---@param file string
 ---@param line integer
 ---@param split string | nil
-local function goto_position(file, line, split)
+local function goto_position(file, line, col, split)
 	if not split then
-		vim.cmd('edit +' .. line .. ' ' .. file)
+		vim.api.nvim_command('edit ' .. file)
+		vim.api.nvim_win_set_cursor(0, { line, col })
 	elseif split == 'vertical' then
-		vim.cmd('vsplit +' .. line .. ' ' .. file)
+		vim.api.nvim_command('vsplit ' .. file)
+		vim.api.nvim_win_set_cursor(0, { line, col })
 	elseif split == 'horizontal' then
-		vim.cmd('split +' .. line .. ' ' .. file)
+		vim.api.nvim_command('split ' .. file)
+		vim.api.nvim_win_set_cursor(0, { line, col })
 	else
 		print('[spelunk.nvim] goto_position passed unsupported split: ' .. split)
 	end
@@ -160,7 +163,7 @@ local function goto_bookmark(close, split)
 			M.close_windows()
 		end
 		vim.schedule(function()
-			goto_position(mark.file, mark.line, split)
+			goto_position(mark.file, mark.line, mark.col, split)
 		end)
 	end
 end

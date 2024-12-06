@@ -33,7 +33,7 @@ local default_config = {
 
 ---@param target table
 ---@param defaults table
-local function apply_defaults(target, defaults)
+local apply_defaults = function(target, defaults)
 	for key, value in pairs(defaults) do
 		if target[key] == nil then
 			target[key] = value
@@ -43,18 +43,18 @@ local function apply_defaults(target, defaults)
 end
 
 ---@param target table
-function M.apply_base_defaults(target)
+M.apply_base_defaults = function(target)
 	apply_defaults(target, default_config.base_mappings)
 end
 
 ---@param target table
-function M.apply_window_defaults(target)
+M.apply_window_defaults = function(target)
 	apply_defaults(target, default_config.window_mappings)
 end
 
 ---@param key string
 ---@return any
-function M.get_default(key)
+M.get_default = function(key)
 	return default_config[key]
 end
 

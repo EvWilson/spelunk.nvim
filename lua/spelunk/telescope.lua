@@ -56,7 +56,7 @@ M.search_stacks = function(prompt, data, cb)
 			actions.select_default:replace(function()
 				local selection = action_state.get_selected_entry()
 				actions.close(prompt_bufnr)
-				cb(selection.value.file, selection.value.line)
+				cb(selection.value.file, selection.value.line, selection.value.col)
 			end)
 			return true
 		end,
