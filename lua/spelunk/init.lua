@@ -23,6 +23,9 @@ local enable_persist
 ---@type string
 local statusline_prefix
 
+---@type boolean
+local show_status_col
+
 ---@param tbl table
 ---@return integer
 local function tbllen(tbl)
@@ -73,7 +76,11 @@ local function get_win_update_opts()
 	}
 end
 
-local function update_window()
+---@param updated_indices boolean
+local function update_window(updated_indices)
+	if updated_indices and show_status_col then
+		marks.update_indices(current_stack())
+	end
 	ui.update_window(get_win_update_opts())
 end
 
@@ -112,10 +119,11 @@ function M.close_help()
 end
 
 function M.add_bookmark()
-	table.insert(bookmark_stacks[current_stack_index].bookmarks, marks.set_mark_current_pos())
+	local currstack = current_stack()
+	table.insert(currstack.bookmarks, marks.set_mark_current_pos(#currstack.bookmarks + 1))
 	print(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
-		bookmark_stacks[current_stack_index].name, vim.fn.expand('%:p'), vim.fn.line('.'), vim.fn.col('.')))
-	update_window()
+		currstack.name, vim.fn.expand('%:p'), vim.fn.line('.'), vim.fn.col('.')))
+	update_window(true)
 	M.persist()
 end
 
@@ -128,7 +136,7 @@ function M.move_cursor(direction)
 	elseif cursor_index > #bookmarks then
 		cursor_index = 1
 	end
-	update_window()
+	update_window(true)
 end
 
 ---@param direction 1 | -1
@@ -191,15 +199,16 @@ function M.goto_selected_bookmark_vertical_split()
 end
 
 function M.delete_selected_bookmark()
-	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
+	local bookmarks = current_stack().bookmarks
 	if not bookmarks[cursor_index] then
 		return
 	end
+	marks.delete_mark(bookmarks[cursor_index])
 	table.remove(bookmarks, cursor_index)
 	if cursor_index > #bookmarks and #bookmarks ~= 0 then
 		cursor_index = #bookmarks
 	end
-	update_window()
+	update_window(true)
 	M.persist()
 end
 
@@ -220,9 +229,10 @@ function M.delete_current_stack()
 	if not bookmark_stacks[current_stack_index] then
 		return
 	end
+	marks.delete_stack(bookmark_stacks[current_stack_index])
 	table.remove(bookmark_stacks, current_stack_index)
 	current_stack_index = 1
-	update_window()
+	update_window(false)
 	M.persist()
 end
 
@@ -236,20 +246,20 @@ function M.edit_current_stack()
 		return
 	end
 	bookmark_stacks[current_stack_index].name = name
-	update_window()
+	update_window(false)
 	M.persist()
 end
 
 function M.next_stack()
 	current_stack_index = current_stack_index % #bookmark_stacks + 1
 	cursor_index = 1
-	update_window()
+	update_window(false)
 end
 
 function M.prev_stack()
 	current_stack_index = (current_stack_index - 2) % #bookmark_stacks + 1
 	cursor_index = 1
-	update_window()
+	update_window(false)
 end
 
 function M.new_stack()
@@ -258,7 +268,7 @@ function M.new_stack()
 		table.insert(bookmark_stacks, { name = name, bookmarks = {} })
 		current_stack_index = #bookmark_stacks
 		cursor_index = 1
-		update_window()
+		update_window(false)
 	end
 	M.persist()
 end
@@ -336,6 +346,8 @@ function M.setup(c)
 
 	require('spelunk.layout').setup(conf.orientation or cfg.get_default('orientation'))
 
+	show_status_col = conf.enable_status_col_display or cfg.get_default('enable_status_col_display')
+
 	-- Load saved bookmarks, if enabled and available
 	-- Otherwise, set defaults
 	---@type PhysicalStack[]
@@ -350,7 +362,7 @@ function M.setup(c)
 		end
 	end
 
-	bookmark_stacks = marks.setup(physical_stacks)
+	bookmark_stacks = marks.setup(physical_stacks, show_status_col)
 
 	-- Configure the prefix to use for the lualine integration
 	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')

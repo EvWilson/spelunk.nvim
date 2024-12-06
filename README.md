@@ -17,6 +17,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Jump directly to bookmark by index
 - Telescope integration - fuzzy find over all bookmarks, or those in the current stack
 - Lualine integration - show the number of bookmarks in the current buffer
+- Status line index display
 
 ## Requirements
 Neovim (**stable** only) >= 0.10.0
@@ -98,6 +99,8 @@ Here's the default mapping object for reference:
 	-- Set UI orientation
 	-- Type: 'vertical' | 'horizontal'
 	orientation = 'vertical',
+	-- Enable to show mark index in status column
+	enable_status_col_display = false,
 }
 ```
 
