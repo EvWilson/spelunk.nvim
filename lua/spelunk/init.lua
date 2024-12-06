@@ -279,6 +279,7 @@ function M.all_full_marks()
 				stack = stack.name,
 				file = mark.file,
 				line = mark.line,
+				col = mark.col,
 			})
 		end
 	end
@@ -299,6 +300,7 @@ function M.current_full_marks()
 			stack = stack.name,
 			file = mark.file,
 			line = mark.line,
+			col = mark.col,
 		})
 	end
 	return data
