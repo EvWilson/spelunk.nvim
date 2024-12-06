@@ -75,7 +75,6 @@ end
 
 ---@param virtstack VirtualStack
 M.update_indices = function(virtstack)
-	print('EAW updating indices')
 	for idx, vmark in ipairs(virtstack.bookmarks) do
 		local mark = M.virt_to_physical(vmark)
 		-- Watch this option set for drift with the main setter
