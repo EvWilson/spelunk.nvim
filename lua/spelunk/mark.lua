@@ -14,11 +14,25 @@ M.virt_to_physical = function(virt)
 	}
 end
 
+---@param virtstacks VirtualStack[]
+---@return PhysicalStack[]
+M.virt_to_physical_stack = function(virtstacks)
+	local ret = {}
+	for i, stack in ipairs(virtstacks) do
+		local physstack = { name = virtstacks[i].name, bookmarks = {} }
+		for _, mark in pairs(stack.bookmarks) do
+			table.insert(physstack.bookmarks, M.virt_to_physical(mark))
+		end
+		table.insert(ret, physstack)
+	end
+	return ret
+end
+
 ---@return VirtualBookmark
 M.set_mark_current_pos = function()
 	local bufnr = vim.api.nvim_get_current_buf()
-	local line = vim.fn.line('.') - 1
-	local col = vim.fn.col('.') - 1
+	local line = vim.fn.line('.')
+	local col = vim.fn.col('.')
 	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, line, col, {
 		strict = false, -- Allow the mark to move with edits
 		right_gravity = true, -- Mark stays at end of inserted text

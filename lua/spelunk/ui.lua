@@ -255,7 +255,12 @@ end
 
 ---@param opts UpdateWinOpts
 local function update_preview(opts)
-	local bookmark = require('spelunk.mark').virt_to_physical(opts.bookmark)
+	local bookmark
+	if opts.bookmark then
+		bookmark = require('spelunk.mark').virt_to_physical(opts.bookmark)
+	else
+		bookmark = nil
+	end
 	if not window_ready(preview_window_id) or not bookmark then
 		return
 	end

@@ -109,12 +109,9 @@ function M.close_help()
 end
 
 function M.add_bookmark()
-	local current_file = vim.fn.expand('%:p')
-	local current_line = vim.fn.line('.')
-	local vmark = marks.set_mark_current_pos()
-	table.insert(bookmark_stacks[current_stack_index].bookmarks, vmark)
-	print("[spelunk.nvim] Bookmark added to stack '" ..
-		bookmark_stacks[current_stack_index].name .. "': " .. current_file .. ":" .. current_line)
+	table.insert(bookmark_stacks[current_stack_index].bookmarks, marks.set_mark_current_pos())
+	print(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
+		bookmark_stacks[current_stack_index].name, vim.fn.expand('%:p'), vim.fn.line('.'), vim.fn.col('.')))
 	update_window()
 	M.persist()
 end
@@ -265,7 +262,7 @@ end
 
 function M.persist()
 	if enable_persist then
-		persist.save(bookmark_stacks)
+		persist.save(marks.virt_to_physical_stack(bookmark_stacks))
 	end
 end
 
