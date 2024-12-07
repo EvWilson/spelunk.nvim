@@ -57,7 +57,9 @@ Here's the default mapping object for reference:
 		-- Fuzzy-find all bookmarks
 		search_bookmarks = '<leader>bf',
 		-- Fuzzy-find bookmarks in current stack
-		search_current_bookmarks = '<leader>bc'
+		search_current_bookmarks = '<leader>bc',
+		-- Fuzzy find all stacks
+		search_stacks = '<leader>bs',
 	},
 	window_mappings = {
 		-- Move the UI cursor down

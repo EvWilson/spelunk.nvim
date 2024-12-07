@@ -9,7 +9,8 @@ local default_config = {
 		next_bookmark = '<leader>bn',
 		prev_bookmark = '<leader>bp',
 		search_bookmarks = '<leader>bf',
-		search_current_bookmarks = '<leader>bc'
+		search_current_bookmarks = '<leader>bc',
+		search_stacks = '<leader>bs',
 	},
 	window_mappings = {
 		cursor_down = 'j',

@@ -7,7 +7,7 @@ local previewers = require('telescope.previewers')
 
 local M = {}
 
-local line_previewer = previewers.new_buffer_previewer({
+local file_previewer = previewers.new_buffer_previewer({
 	title = 'Preview',
 	get_buffer_by_name = function(_, entry)
 		return entry.filename
@@ -33,15 +33,16 @@ local line_previewer = previewers.new_buffer_previewer({
 })
 
 ---@param prompt string
----@param data FullBookmark
----@param cb function
-M.search_stacks = function(prompt, data, cb)
+---@param data FullBookmark[]
+---@param cb fun(file: string, line: integer, col: integer, split: string|nil)
+M.search_marks = function(prompt, data, cb)
 	local opts = {}
 
 	pickers.new(opts, {
 		prompt_title = prompt,
 		finder = finders.new_table {
 			results = data,
+			---@param entry FullBookmark
 			entry_maker = function(entry)
 				local display_str = require('spelunk.util').full_bookmark_to_string(entry)
 				return {
@@ -60,7 +61,38 @@ M.search_stacks = function(prompt, data, cb)
 			end)
 			return true
 		end,
-		previewer = line_previewer,
+		previewer = file_previewer,
+	}):find()
+end
+
+---@param prompt string
+---@param data PhysicalStack[]
+---@param cb fun(data: PhysicalStack)
+M.search_stacks = function(prompt, data, cb)
+	local opts = {}
+
+	pickers.new(opts, {
+		prompt_title = prompt,
+		finder = finders.new_table {
+			results = data,
+			entry_maker = function(entry)
+				local display_str = entry.name
+				return {
+					value = entry,
+					display = display_str,
+					ordinal = display_str,
+				}
+			end
+		},
+		sorter = conf.generic_sorter(opts),
+		attach_mappings = function(prompt_bufnr, _)
+			actions.select_default:replace(function()
+				local selection = action_state.get_selected_entry()
+				actions.close(prompt_bufnr)
+				cb(selection.value)
+			end)
+			return true
+		end,
 	}):find()
 end
 

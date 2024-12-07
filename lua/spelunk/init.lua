@@ -1,6 +1,7 @@
 local ui = require('spelunk.ui')
 local persist = require('spelunk.persistence')
 local marks = require('spelunk.mark')
+local tele = require('spelunk.telescope')
 
 local M = {}
 
@@ -297,7 +298,7 @@ function M.all_full_marks()
 end
 
 function M.search_marks()
-	require('spelunk.telescope').search_stacks('[spelunk.nvim] Bookmarks', M.all_full_marks(), goto_position)
+	tele.search_marks('[spelunk.nvim] Bookmarks', M.all_full_marks(), goto_position)
 end
 
 ---@return FullBookmark[]
@@ -317,7 +318,26 @@ function M.current_full_marks()
 end
 
 function M.search_current_marks()
-	require('spelunk.telescope').search_stacks('[spelunk.nvim] Current Stack', M.current_full_marks(), goto_position)
+	tele.search_marks('[spelunk.nvim] Current Stack', M.current_full_marks(), goto_position)
+end
+
+function M.search_stacks()
+	---@param stack PhysicalStack
+	local cb = function(stack)
+		print(vim.inspect(stack))
+		local stack_idx
+		for i, s in ipairs(bookmark_stacks) do
+			if s.name == stack.name then
+				stack_idx = i
+			end
+		end
+		if not stack_idx then
+			return
+		end
+		current_stack_index = stack_idx
+		M.toggle_window()
+	end
+	tele.search_stacks('[spelunk.nvim] Stacks', marks.virt_to_physical_stack(bookmark_stacks), cb)
 end
 
 ---@return string
@@ -375,17 +395,6 @@ function M.setup(c)
 	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
 		'[spelunk.nvim] Go to previous bookmark')
 
-	-- Register telescope extension, only if telescope itself is loaded already
-	local telescope_loaded, tele = pcall(require, 'telescope')
-	if not telescope_loaded then
-		return
-	end
-	tele.load_extension('spelunk')
-	set(base_config.search_bookmarks, tele.extensions.spelunk.marks,
-		'[spelunk.nvim] Fuzzy find bookmarks')
-	set(base_config.search_current_bookmarks, tele.extensions.spelunk.current_marks,
-		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
-
 	-- Create a callback to persist changes to mark locations on file updates
 	local persist_augroup = vim.api.nvim_create_augroup('SpelunkPersistCallback', { clear = true })
 	vim.api.nvim_create_autocmd('BufWritePost', {
@@ -407,6 +416,18 @@ function M.setup(c)
 		end,
 		desc = '[spelunk.nvim] Persist mark updates on file change'
 	})
+
+	-- Register telescope extension, only if telescope itself is loaded already
+	local telescope_loaded, telescope = pcall(require, 'telescope')
+	if not telescope_loaded then
+		return
+	end
+	telescope.load_extension('spelunk')
+	set(base_config.search_bookmarks, telescope.extensions.spelunk.marks,
+		'[spelunk.nvim] Fuzzy find bookmarks')
+	set(base_config.search_current_bookmarks, telescope.extensions.spelunk.current_marks,
+		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
+	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, '[spelunk.nvim] Fuzzy find stacks')
 end
 
 return M

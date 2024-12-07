@@ -3,6 +3,7 @@
 return require('telescope').register_extension({
 	exports = {
 		marks = require('spelunk').search_marks,
-		current_marks = require('spelunk').search_current_marks
+		current_marks = require('spelunk').search_current_marks,
+		stacks = require('spelunk').search_stacks
 	}
 })
