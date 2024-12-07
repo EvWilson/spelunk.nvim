@@ -15,7 +15,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Togglable UI, with contextual and rebindable controls
 - Cycle bookmarks via keybind
 - Jump directly to bookmark by index
-- Telescope integration - fuzzy find over all bookmarks, or those in the current stack
+- Telescope integration - fuzzy find over bookmarks and stacks
 - Lualine integration - show the number of bookmarks in the current buffer
 - Status line index display
 
