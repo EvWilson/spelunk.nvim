@@ -355,6 +355,41 @@ function M.statusline()
 	return statusline_prefix .. ' ' .. count
 end
 
+---@param vmarks VirtualBookmark[]
+local open_marks_qf = function(vmarks)
+	local qf_items = {}
+	for _, vmark in ipairs(vmarks) do
+		local mark = marks.virt_to_physical(vmark)
+		table.insert(qf_items, {
+			bufnr = vmark.bufnr,
+			lnum = mark.line,
+			col = mark.col,
+			text = vim.fn.getline(mark.line),
+			type = '',
+		})
+	end
+	vim.fn.setqflist(qf_items, 'r')
+	vim.cmd('copen')
+end
+
+M.qf_all_marks = function()
+	local vmarks = {}
+	for _, vstack in ipairs(bookmark_stacks) do
+		for _, vmark in ipairs(vstack.bookmarks) do
+			table.insert(vmarks, vmark)
+		end
+	end
+	open_marks_qf(vmarks)
+end
+
+M.qf_current_marks = function()
+	local vmarks = {}
+	for _, vmark in ipairs(current_stack().bookmarks) do
+		table.insert(vmarks, vmark)
+	end
+	open_marks_qf(vmarks)
+end
+
 function M.setup(c)
 	local conf = c or {}
 	local cfg = require('spelunk.config')

@@ -234,5 +234,11 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	- Returns:
 		- `FullBookmark[]`
 
+- `qf_all_marks()`
+	- Description: open all mark locations in the quickfix list
+
+- `qf_current_marks()`
+	- Description: open current stack's mark locations in the quickfix list
+
 ### API Questions?
 Some examples are available in th [`faqs`](faqs/) directory. If there's something you'd like to know how to do, please open an issue and we can see about implementing it!
