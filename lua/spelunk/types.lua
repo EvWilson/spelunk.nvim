@@ -12,8 +12,11 @@
 ---@class PhysicalStack
 ---@field name string
 ---@field bookmarks PhysicalBookmark[]
----
+
 ---@class VirtualBookmark
+---@field file string
+---@field line integer
+---@field col integer
 ---@field bufnr integer
 ---@field mark_id integer
 

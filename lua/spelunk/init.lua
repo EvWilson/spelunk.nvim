@@ -28,13 +28,18 @@ local statusline_prefix
 ---@type boolean
 local show_status_col
 
+---@return VirtualStack[]
+local get_stacks = function()
+	return bookmark_stacks
+end
+
 ---@return VirtualStack
-local function current_stack()
+local current_stack = function()
 	return bookmark_stacks[current_stack_index]
 end
 
 ---@return VirtualBookmark
-local function current_bookmark()
+local current_bookmark = function()
 	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
 end
 
@@ -42,7 +47,7 @@ end
 M.filename_formatter = require('spelunk.util').filename_formatter
 
 ---@return integer
-local function max_stack_size()
+local max_stack_size = function()
 	local max = 0
 	for _, stack in ipairs(bookmark_stacks) do
 		local size = util.tbllen(stack.bookmarks)
@@ -54,7 +59,7 @@ local function max_stack_size()
 end
 
 ---@return UpdateWinOpts
-local function get_win_update_opts()
+local get_win_update_opts = function()
 	local lines = {}
 	for _, vmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
 		local bookmark = marks.virt_to_physical(vmark)
@@ -71,7 +76,7 @@ local function get_win_update_opts()
 end
 
 ---@param updated_indices boolean
-local function update_window(updated_indices)
+local update_window = function(updated_indices)
 	if updated_indices and show_status_col then
 		marks.update_indices(current_stack())
 	end
@@ -81,7 +86,7 @@ end
 ---@param file string
 ---@param line integer
 ---@param split string | nil
-local function goto_position(file, line, col, split)
+local goto_position = function(file, line, col, split)
 	if not split then
 		vim.api.nvim_command('edit ' .. file)
 		vim.api.nvim_win_set_cursor(0, { line, col })
@@ -413,7 +418,7 @@ function M.setup(c)
 		end
 	end
 
-	bookmark_stacks = marks.setup(physical_stacks, show_status_col)
+	bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
 
 	-- Configure the prefix to use for the lualine integration
 	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')
@@ -425,28 +430,6 @@ function M.setup(c)
 		'[spelunk.nvim] Go to next bookmark')
 	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
 		'[spelunk.nvim] Go to previous bookmark')
-
-	-- Create a callback to persist changes to mark locations on file updates
-	local persist_augroup = vim.api.nvim_create_augroup('SpelunkPersistCallback', { clear = true })
-	vim.api.nvim_create_autocmd('BufWritePost', {
-		group = persist_augroup,
-		pattern = '*',
-		callback = function(ctx)
-			local bufnr = ctx.buf
-			if not bufnr then
-				return
-			end
-			for _, stack in pairs(bookmark_stacks) do
-				for _, mark in pairs(stack.bookmarks) do
-					if bufnr == mark.bufnr then
-						M.persist()
-						return
-					end
-				end
-			end
-		end,
-		desc = '[spelunk.nvim] Persist mark updates on file change'
-	})
 
 	-- Register telescope extension, only if telescope itself is loaded already
 	local telescope_loaded, telescope = pcall(require, 'telescope')

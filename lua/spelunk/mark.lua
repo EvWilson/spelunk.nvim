@@ -7,10 +7,52 @@ local ns_id = vim.api.nvim_create_namespace('spelunk')
 
 local show_status_col
 
+---@param extmark vim.api.keyset.get_extmark_item
+---@return boolean
+local extmark_ok = function(extmark)
+	return extmark[1] ~= nil and extmark[2] ~= nil
+end
+
+---@param mark PhysicalBookmark
+---@param idx integer
+---@return VirtualBookmark
+local set_mark = function(mark, idx)
+	local bufnr = vim.fn.bufadd(mark.file)
+	vim.fn.bufload(bufnr)
+	local opts = {
+		strict = false,
+		right_gravity = true,
+	}
+	if show_status_col then
+		opts.sign_text = tostring(idx)
+	end
+	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
+
+	return {
+		file = mark.file,
+		line = mark.line,
+		col = mark.col,
+		bufnr = bufnr,
+		mark_id = mark_id,
+	}
+end
+
 ---@param virt VirtualBookmark
 ---@return PhysicalBookmark
 M.virt_to_physical = function(virt)
-	local mark = vim.api.nvim_buf_get_extmark_by_id(virt.bufnr, ns_id, virt.mark_id, {})
+	---@param vmark VirtualBookmark
+	---@return boolean, any
+	local get_mark = function(vmark)
+		return pcall(vim.api.nvim_buf_get_extmark_by_id, vmark.bufnr, ns_id, vmark.mark_id, {})
+	end
+	local ok, mark = get_mark(virt)
+	if not ok or not extmark_ok(mark) then
+		virt = set_mark({
+			file = virt.file,
+			line = virt.line,
+			col = virt.col,
+		}, 0)
+	end
 	return {
 		file = vim.api.nvim_buf_get_name(virt.bufnr),
 		line = mark[1] + 1,
@@ -30,26 +72,6 @@ M.virt_to_physical_stack = function(virtstacks)
 		table.insert(ret, physstack)
 	end
 	return ret
-end
-
----@param mark PhysicalBookmark
----@param idx integer
----@return VirtualBookmark
-local set_mark = function(mark, idx)
-	local bufnr = vim.fn.bufadd(mark.file)
-	vim.fn.bufload(bufnr)
-	local opts = {
-		strict = false,
-		right_gravity = true,
-	}
-	if show_status_col then
-		opts.sign_text = tostring(idx)
-	end
-	local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
-	return {
-		bufnr = bufnr,
-		mark_id = mark_id,
-	}
 end
 
 ---@param idx integer
@@ -93,8 +115,11 @@ end
 
 ---@param stacks PhysicalStack[]
 ---@param show_status boolean
+---@param enable_persist boolean
+---@param persist_cb fun()
+---@param get_stack_cb fun(): VirtualStack[]
 ---@return VirtualStack[]
-M.setup = function(stacks, show_status)
+M.setup = function(stacks, show_status, enable_persist, persist_cb, get_stack_cb)
 	show_status_col = show_status
 
 	if util.tbllen(stacks) == 0 then
@@ -110,6 +135,31 @@ M.setup = function(stacks, show_status)
 			table.insert(vstack[idx].bookmarks, virtmark)
 		end
 	end
+
+	-- Create a callback to persist changes to mark locations on file updates
+	if enable_persist then
+		local persist_augroup = vim.api.nvim_create_augroup('SpelunkPersistCallback', { clear = true })
+		vim.api.nvim_create_autocmd('BufWritePost', {
+			group = persist_augroup,
+			pattern = '*',
+			callback = function(ctx)
+				local bufnr = ctx.buf
+				if not bufnr then
+					return
+				end
+				for _, stack in pairs(get_stack_cb()) do
+					for _, mark in pairs(stack.bookmarks) do
+						if bufnr == mark.bufnr then
+							persist_cb()
+							return
+						end
+					end
+				end
+			end,
+			desc = '[spelunk.nvim] Persist mark updates on file change'
+		})
+	end
+
 	return vstack
 end
 
