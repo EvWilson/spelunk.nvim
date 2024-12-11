@@ -82,15 +82,13 @@ end
 local function read_lines(filename, start_line, end_line)
 	local ok, lines = pcall(vim.fn.readfile, filename)
 	if not ok then
-		error('[spelunk.nvim] Could not read file: ' .. filename)
-		return {}
+		return { '[spelunk.nvim] Could not read file: ' .. filename }
 	end
 
 	start_line = math.max(1, start_line)
 	end_line = math.min(end_line, #lines)
 	if end_line < start_line then
-		error('[spelunk.nvim] End line must be greater than or equal to start line')
-		return {}
+		return { '[spelunk.nvim] End line must be greater than or equal to start line' }
 	end
 
 	local result = {}
