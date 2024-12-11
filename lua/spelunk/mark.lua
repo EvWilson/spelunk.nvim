@@ -1,3 +1,5 @@
+local util = require('spelunk.util')
+
 local M = {}
 
 ---@type integer
@@ -94,6 +96,10 @@ end
 ---@return VirtualStack[]
 M.setup = function(stacks, show_status)
 	show_status_col = show_status
+
+	if util.tbllen(stacks) == 0 then
+		return {}
+	end
 
 	---@type VirtualStack[]
 	local vstack = {}

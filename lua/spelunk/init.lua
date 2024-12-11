@@ -2,6 +2,7 @@ local ui = require('spelunk.ui')
 local persist = require('spelunk.persistence')
 local marks = require('spelunk.mark')
 local tele = require('spelunk.telescope')
+local util = require('spelunk.util')
 
 local M = {}
 
@@ -27,14 +28,6 @@ local statusline_prefix
 ---@type boolean
 local show_status_col
 
----@param tbl table
----@return integer
-local function tbllen(tbl)
-	local count = 0
-	for _ in pairs(tbl) do count = count + 1 end
-	return count
-end
-
 ---@return VirtualStack
 local function current_stack()
 	return bookmark_stacks[current_stack_index]
@@ -52,7 +45,7 @@ M.filename_formatter = require('spelunk.util').filename_formatter
 local function max_stack_size()
 	local max = 0
 	for _, stack in ipairs(bookmark_stacks) do
-		local size = tbllen(stack.bookmarks)
+		local size = util.tbllen(stack.bookmarks)
 		if size > max then
 			max = size
 		end
@@ -147,11 +140,11 @@ function M.move_bookmark(direction)
 		return
 	end
 	local curr_stack = current_stack()
-	if tbllen(current_stack().bookmarks) < 2 then
+	if util.tbllen(current_stack().bookmarks) < 2 then
 		return
 	end
 	local new_idx = cursor_index + direction
-	if new_idx < 1 or new_idx > tbllen(curr_stack.bookmarks) then
+	if new_idx < 1 or new_idx > util.tbllen(curr_stack.bookmarks) then
 		return
 	end
 	local curr_mark = current_bookmark()
@@ -179,7 +172,7 @@ end
 
 ---@param idx integer
 function M.goto_bookmark_at_index(idx)
-	if idx < 1 or idx > tbllen(bookmark_stacks[current_stack_index].bookmarks) then
+	if idx < 1 or idx > util.tbllen(bookmark_stacks[current_stack_index].bookmarks) then
 		print('[spelunk.nvim] Given invalid index: ' .. idx)
 		return
 	end
@@ -223,7 +216,7 @@ function M.select_and_goto_bookmark(direction)
 end
 
 function M.delete_current_stack()
-	if tbllen(bookmark_stacks) < 2 then
+	if util.tbllen(bookmark_stacks) < 2 then
 		print('[spelunk.nvim] Cannot delete a stack when you have less than two')
 		return
 	end
