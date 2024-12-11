@@ -92,7 +92,7 @@ local function goto_position(file, line, col, split)
 		vim.api.nvim_command('split ' .. file)
 		vim.api.nvim_win_set_cursor(0, { line, col })
 	else
-		print('[spelunk.nvim] goto_position passed unsupported split: ' .. split)
+		vim.notify('[spelunk.nvim] goto_position passed unsupported split: ' .. split)
 	end
 end
 
@@ -115,7 +115,7 @@ end
 function M.add_bookmark()
 	local currstack = current_stack()
 	table.insert(currstack.bookmarks, marks.set_mark_current_pos(#currstack.bookmarks + 1))
-	print(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
+	vim.notify(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
 		currstack.name, vim.fn.expand('%:p'), vim.fn.line('.'), vim.fn.col('.')))
 	update_window(true)
 	M.persist()
@@ -136,7 +136,7 @@ end
 ---@param direction 1 | -1
 function M.move_bookmark(direction)
 	if direction ~= 1 and direction ~= -1 then
-		print('[spelunk.nvim] move_bookmark passed invalid direction')
+		vim.notify('[spelunk.nvim] move_bookmark passed invalid direction')
 		return
 	end
 	local curr_stack = current_stack()
@@ -173,7 +173,7 @@ end
 ---@param idx integer
 function M.goto_bookmark_at_index(idx)
 	if idx < 1 or idx > util.tbllen(bookmark_stacks[current_stack_index].bookmarks) then
-		print('[spelunk.nvim] Given invalid index: ' .. idx)
+		vim.notify('[spelunk.nvim] Given invalid index: ' .. idx)
 		return
 	end
 	cursor_index = idx
@@ -211,13 +211,17 @@ function M.select_and_goto_bookmark(direction)
 	if ui.is_open() then
 		return
 	end
+	if util.tbllen(current_stack().bookmarks) == 0 then
+		vim.notify('[spelunk.nvim] No bookmarks to go to')
+		return
+	end
 	M.move_cursor(direction)
 	goto_bookmark(false)
 end
 
 function M.delete_current_stack()
 	if util.tbllen(bookmark_stacks) < 2 then
-		print('[spelunk.nvim] Cannot delete a stack when you have less than two')
+		vim.notify('[spelunk.nvim] Cannot delete a stack when you have less than two')
 		return
 	end
 	if not bookmark_stacks[current_stack_index] then
@@ -317,7 +321,6 @@ end
 function M.search_stacks()
 	---@param stack PhysicalStack
 	local cb = function(stack)
-		print(vim.inspect(stack))
 		local stack_idx
 		for i, s in ipairs(bookmark_stacks) do
 			if s.name == stack.name then
