@@ -41,7 +41,7 @@ end
 ---@return PhysicalBookmark
 M.virt_to_physical = function(virt)
 	---@param vmark VirtualBookmark
-	---@return boolean, any
+	---@return boolean, vim.api.keyset.get_extmark_item
 	local get_mark = function(vmark)
 		return pcall(vim.api.nvim_buf_get_extmark_by_id, vmark.bufnr, ns_id, vmark.mark_id, {})
 	end
