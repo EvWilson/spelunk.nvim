@@ -295,6 +295,10 @@ function M.all_full_marks()
 end
 
 function M.search_marks()
+	if not tele then
+		vim.notify('[spelunk.nvim] Install telescope.nvim to search marks')
+		return
+	end
 	tele.search_marks('[spelunk.nvim] Bookmarks', M.all_full_marks(), goto_position)
 end
 
@@ -315,6 +319,10 @@ function M.current_full_marks()
 end
 
 function M.search_current_marks()
+	if not tele then
+		vim.notify('[spelunk.nvim] Install telescope.nvim to search marks')
+		return
+	end
 	tele.search_marks('[spelunk.nvim] Current Stack', M.current_full_marks(), goto_position)
 end
 

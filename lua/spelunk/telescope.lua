@@ -1,3 +1,8 @@
+local status_ok, _ = pcall(require, "telescope")
+if not status_ok then
+	return false
+end
+
 local pickers = require('telescope.pickers')
 local finders = require('telescope.finders')
 local conf = require('telescope.config').values
