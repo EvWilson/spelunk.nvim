@@ -61,7 +61,7 @@ end
 ---@return UpdateWinOpts
 local get_win_update_opts = function()
 	local lines = {}
-	for _, vmark in ipairs(bookmark_stacks[current_stack_index].bookmarks) do
+	for _, vmark in ipairs(current_stack().bookmarks) do
 		local bookmark = marks.virt_to_physical(vmark)
 		local display = string.format('%s:%d', M.filename_formatter(bookmark.file), bookmark.line)
 		table.insert(lines, display)
@@ -406,16 +406,14 @@ function M.setup(c)
 
 	-- Load saved bookmarks, if enabled and available
 	-- Otherwise, set defaults
-	---@type PhysicalStack[]
+	---@type PhysicalStack[] | nil
 	local physical_stacks
 	enable_persist = conf.enable_persist or cfg.get_default('enable_persist')
 	if enable_persist then
-		local saved = persist.load()
-		if saved then
-			physical_stacks = saved
-		else
-			physical_stacks = default_stacks
-		end
+		physical_stacks = persist.load()
+	end
+	if not physical_stacks then
+		physical_stacks = default_stacks
 	end
 
 	bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
