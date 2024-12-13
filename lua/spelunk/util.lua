@@ -103,4 +103,14 @@ M.tbllen = function(tbl)
 	return count
 end
 
+---@param tbl table
+---@return table
+M.copy_tbl = function(tbl)
+	local copy = {}
+	for k, v in pairs(tbl) do
+		copy[k] = v
+	end
+	return copy
+end
+
 return M

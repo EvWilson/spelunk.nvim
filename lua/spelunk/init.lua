@@ -315,7 +315,15 @@ function M.search_marks()
 		vim.notify('[spelunk.nvim] Install telescope.nvim to search marks')
 		return
 	end
-	tele.search_marks('[spelunk.nvim] Bookmarks', M.all_full_marks(), goto_position)
+	local data = {}
+	for _, stack in ipairs(bookmark_stacks) do
+		for _, vmark in ipairs(stack.bookmarks) do
+			local copy = util.copy_tbl(vmark)
+			copy.stack = stack.name
+			table.insert(data, copy)
+		end
+	end
+	tele.search_marks('[spelunk.nvim] Bookmarks', data, goto_position)
 end
 
 ---@return FullBookmark[]

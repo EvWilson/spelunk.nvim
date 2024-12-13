@@ -38,7 +38,7 @@ local file_previewer = previewers.new_buffer_previewer({
 })
 
 ---@param prompt string
----@param data FullBookmark[]
+---@param data VirtualBookmarkWithStack[]
 ---@param cb fun(file: string, line: integer, col: integer, split: string|nil)
 M.search_marks = function(prompt, data, cb)
 	local opts = {}
@@ -47,7 +47,7 @@ M.search_marks = function(prompt, data, cb)
 		prompt_title = prompt,
 		finder = finders.new_table {
 			results = data,
-			---@param entry FullBookmark
+			---@param entry VirtualBookmarkWithStack
 			entry_maker = function(entry)
 				local display_str = string.format('%s.%s', entry.stack, require('spelunk').display_function(entry))
 				return {
@@ -71,8 +71,8 @@ M.search_marks = function(prompt, data, cb)
 end
 
 ---@param prompt string
----@param data PhysicalStack[]
----@param cb fun(data: PhysicalStack)
+---@param data VirtualStack[]
+---@param cb fun(data: VirtualStack)
 M.search_stacks = function(prompt, data, cb)
 	local opts = {}
 

@@ -20,6 +20,14 @@
 ---@field bufnr integer
 ---@field mark_id integer
 
+---@class VirtualBookmarkWithStack
+---@field stack string
+---@field file string
+---@field line integer
+---@field col integer
+---@field bufnr integer
+---@field mark_id integer
+
 ---@class VirtualStack
 ---@field name string
 ---@field bookmarks VirtualBookmark[]
