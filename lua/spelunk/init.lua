@@ -435,42 +435,49 @@ function M.setup(c)
 
 	show_status_col = conf.enable_status_col_display or cfg.get_default('enable_status_col_display')
 
-	-- Load saved bookmarks, if enabled and available
-	-- Otherwise, set defaults
-	---@type PhysicalStack[] | nil
-	local physical_stacks
-	enable_persist = conf.enable_persist or cfg.get_default('enable_persist')
-	if enable_persist then
-		physical_stacks = persist.load()
-	end
-	if not physical_stacks then
-		physical_stacks = default_stacks
-	end
+	-- This does a whole lot of work on setup, and can potentially delay the loading of other plugins
+	-- In the worst case, this has blocked the loading of LSP servers, possibly by timeout
+	-- Adding something like a `lazy.nvim` `VeryLazy` event spec doesn't work in all cases,
+	-- e.g. when the Lualine integration is enabled, it forces it to load up anyway
+	-- This seems to delay things just long enough to get it to play nicely with others
+	vim.schedule(function()
+		-- Load saved bookmarks, if enabled and available
+		-- Otherwise, set defaults
+		---@type PhysicalStack[] | nil
+		local physical_stacks
+		enable_persist = conf.enable_persist or cfg.get_default('enable_persist')
+		if enable_persist then
+			physical_stacks = persist.load()
+		end
+		if not physical_stacks then
+			physical_stacks = default_stacks
+		end
 
-	bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
+		bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
 
-	-- Configure the prefix to use for the lualine integration
-	statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')
+		-- Configure the prefix to use for the lualine integration
+		statusline_prefix = conf.statusline_prefix or cfg.get_default('statusline_prefix')
 
-	local set = cfg.set_keymap
-	set(base_config.toggle, M.toggle_window, '[spelunk.nvim] Toggle UI')
-	set(base_config.add, M.add_bookmark, '[spelunk.nvim] Add bookmark')
-	set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
-		'[spelunk.nvim] Go to next bookmark')
-	set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
-		'[spelunk.nvim] Go to previous bookmark')
+		local set = cfg.set_keymap
+		set(base_config.toggle, M.toggle_window, '[spelunk.nvim] Toggle UI')
+		set(base_config.add, M.add_bookmark, '[spelunk.nvim] Add bookmark')
+		set(base_config.next_bookmark, ':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
+			'[spelunk.nvim] Go to next bookmark')
+		set(base_config.prev_bookmark, ':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
+			'[spelunk.nvim] Go to previous bookmark')
 
-	-- Register telescope extension, only if telescope itself is loaded already
-	local telescope_loaded, telescope = pcall(require, 'telescope')
-	if not telescope_loaded or not telescope then
-		return
-	end
-	telescope.load_extension('spelunk')
-	set(base_config.search_bookmarks, telescope.extensions.spelunk.marks,
-		'[spelunk.nvim] Fuzzy find bookmarks')
-	set(base_config.search_current_bookmarks, telescope.extensions.spelunk.current_marks,
-		'[spelunk.nvim] Fuzzy find bookmarks in current stack')
-	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, '[spelunk.nvim] Fuzzy find stacks')
+		-- Register telescope extension, only if telescope itself is loaded already
+		local telescope_loaded, telescope = pcall(require, 'telescope')
+		if not telescope_loaded or not telescope then
+			return
+		end
+		telescope.load_extension('spelunk')
+		set(base_config.search_bookmarks, telescope.extensions.spelunk.marks,
+			'[spelunk.nvim] Fuzzy find bookmarks')
+		set(base_config.search_current_bookmarks, telescope.extensions.spelunk.current_marks,
+			'[spelunk.nvim] Fuzzy find bookmarks in current stack')
+		set(base_config.search_stacks, telescope.extensions.spelunk.stacks, '[spelunk.nvim] Fuzzy find stacks')
+	end)
 end
 
 return M
