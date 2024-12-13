@@ -87,6 +87,10 @@ end
 ---@param line integer
 ---@param split string | nil
 local goto_position = function(file, line, col, split)
+	if vim.fn.filereadable(file) ~= 1 then
+		vim.notify('[spelunk.nvim] file being navigated to does not seem to exist: ' .. file)
+		return
+	end
 	if not split then
 		vim.api.nvim_command('edit ' .. file)
 		vim.api.nvim_win_set_cursor(0, { line, col })
