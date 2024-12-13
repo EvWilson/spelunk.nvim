@@ -15,19 +15,20 @@ end
 If you'd like to change this to display the Treesitter context for the current mark, here's a minimal example config block to achieve that end:
 ```lua
 {
-'EvWilson/spelunk.nvim',
-dependencies = {
-	'nvim-lua/plenary.nvim',
-},
-config = function()
-	local spelunk = require('spelunk')
-	spelunk.setup()
-	spelunk.display_function = function(mark)
-		return require('spelunk.util').get_treesitter_context(mark)
+	'EvWilson/spelunk.nvim',
+	dependencies = {
+		'nvim-lua/plenary.nvim',
+	},
+	config = function()
+		local spelunk = require('spelunk')
+		spelunk.setup()
+		spelunk.display_function = function(mark)
+			return require('spelunk.util').get_treesitter_context(mark)
+		end
 	end
-end
-},
+}
 ```
+
 Feel free to adjust this to suit your needs, for example by fusing it with the default shown above! An example:
 ```lua
 spelunk.display_function = function(mark)
