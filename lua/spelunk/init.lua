@@ -43,8 +43,17 @@ local current_bookmark = function()
 	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
 end
 
----@type fun(abspath: string): string
-M.filename_formatter = require('spelunk.util').filename_formatter
+---@param abspath string
+---@return string
+M.filename_formatter = function(abspath)
+	return vim.fn.fnamemodify(abspath, ':~:.')
+end
+
+---@param mark VirtualBookmark | PhysicalBookmark | FullBookmark
+---@return string
+M.display_function = function(mark)
+	return string.format('%s:%d', M.filename_formatter(mark.file), mark.line)
+end
 
 ---@return integer
 local max_stack_size = function()
@@ -62,9 +71,7 @@ end
 local get_win_update_opts = function()
 	local lines = {}
 	for _, vmark in ipairs(current_stack().bookmarks) do
-		local bookmark = marks.virt_to_physical(vmark)
-		local display = string.format('%s:%d', M.filename_formatter(bookmark.file), bookmark.line)
-		table.insert(lines, display)
+		table.insert(lines, M.display_function(vmark))
 	end
 	return {
 		cursor_index = cursor_index,
@@ -329,13 +336,17 @@ end
 
 function M.search_current_marks()
 	if not tele then
-		vim.notify('[spelunk.nvim] Install telescope.nvim to search marks')
+		vim.notify('[spelunk.nvim] Install telescope.nvim to search current marks')
 		return
 	end
-	tele.search_marks('[spelunk.nvim] Current Stack', M.current_full_marks(), goto_position)
+	tele.search_marks('[spelunk.nvim] Current Stack', current_stack(), goto_position)
 end
 
 function M.search_stacks()
+	if not tele then
+		vim.notify('[spelunk.nvim] Install telescope.nvim to search stacks')
+		return
+	end
 	---@param stack PhysicalStack
 	local cb = function(stack)
 		local stack_idx
@@ -350,7 +361,7 @@ function M.search_stacks()
 		current_stack_index = stack_idx
 		M.toggle_window()
 	end
-	tele.search_stacks('[spelunk.nvim] Stacks', marks.virt_to_physical_stack(bookmark_stacks), cb)
+	tele.search_stacks('[spelunk.nvim] Stacks', bookmark_stacks, cb)
 end
 
 ---@return string
@@ -443,7 +454,7 @@ function M.setup(c)
 
 	-- Register telescope extension, only if telescope itself is loaded already
 	local telescope_loaded, telescope = pcall(require, 'telescope')
-	if not telescope_loaded then
+	if not telescope_loaded or not telescope then
 		return
 	end
 	telescope.load_extension('spelunk')

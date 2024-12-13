@@ -152,10 +152,20 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	end
 	```
 
+- `display_function`
+	- Description: function determining how to format the full displayed string
+	- Type: `fun(mark: VirtualBookmark | PhysicalBookmark | FullBookmark): string`
+	- Default value:
+	```lua
+	M.display_function = function(mark)
+		return string.format('%s:%d', M.filename_formatter(mark.file), mark.line)
+	end
+	```
+
 - `setup(config)`
 	- Description: initialize the plugin, should be called to opt-in to default behavior
 	- Parameters:
-		- `config` - `table`: a table in the format given in the above Configuration section
+		- `config: table`: a table in the format given in the above Configuration section
 
 - `toggle_window()`
 	- Description: toggle the UI open/closed
@@ -169,12 +179,12 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `move_cursor(direction)`
 	- Description: move the cursor in the UI (and underlying state) in the provided direction
 	- Parameters:
-		- `direction` - `integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
+		- `direction: integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
 
 - `move_bookmark(direction)`
 	- Description: move the bookmark in the UI (and underlying state) in the provided direction
 	- Parameters:
-		- `direction` - `integer` (1 | -1): direction to move the bookmark, 1 is down, -1 is up
+		- `direction: integer` (1 | -1): direction to move the bookmark, 1 is down, -1 is up
 
 - `goto_selected_bookmark()`
 	- Description: navigate to the bookmark currently under the cursor in the UI
@@ -196,7 +206,7 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `select_and_goto_bookmark(direction)`
 	- Description: move the cursor in the given direction, then go to that bookmark
 	- Parameters:
-		- `direction` - `integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
+		- `direction: integer` (1 | -1): direction to move the cursor, 1 is down, -1 is up
 
 - `delete_current_stack()`
 	- Description: delete the currently selected stack
@@ -240,5 +250,16 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `qf_current_marks()`
 	- Description: open current stack's mark locations in the quickfix list
 
+- `require('spelunk.util').get_treesitter_context(mark)`
+	- Description: specially-scoped function to get the context of the given mark, in terms of chained Treesitter contexts
+	- Disclaimer: this function is best-effort and incubatory, please open an issue if it's misbehaving and see the guide in `faqs/` for usage
+	- Parameters:
+		- `mark: VirtualBookmark`
+	- Returns: string
+
 ### API Questions?
 Some examples are available in th [`faqs`](faqs/) directory. If there's something you'd like to know how to do, please open an issue and we can see about implementing it!
+
+Currently there are guides on:
+- Providing a custom formatter for display filenames
+- Overriding the display function altogether to show Treesitter context instead of mark location

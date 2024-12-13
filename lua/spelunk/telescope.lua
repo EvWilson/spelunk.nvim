@@ -49,7 +49,7 @@ M.search_marks = function(prompt, data, cb)
 			results = data,
 			---@param entry FullBookmark
 			entry_maker = function(entry)
-				local display_str = require('spelunk.util').full_bookmark_to_string(entry)
+				local display_str = string.format('%s.%s', entry.stack, require('spelunk').display_function(entry))
 				return {
 					value = entry,
 					display = display_str,
