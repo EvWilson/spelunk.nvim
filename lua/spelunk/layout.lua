@@ -87,6 +87,21 @@ local help_dimension_func = function()
 	end
 end
 
+---@return boolean
+M.has_bookmark_dimensions = function()
+	return M.bookmark_dimensions ~= nil
+end
+
+---@return boolean
+M.has_preview_dimensions = function()
+	return M.preview_dimensions ~= nil
+end
+
+---@return boolean
+M.has_help_dimensions = function()
+	return M.help_dimensions ~= nil
+end
+
 ---@param o 'vertical' | 'horizontal' | LayoutProvider
 function M.setup(o)
 	if o ~= 'vertical' and o ~= 'horizontal' and type(o) ~= 'table' then

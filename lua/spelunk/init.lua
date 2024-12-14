@@ -129,6 +129,10 @@ function M.close_help()
 end
 
 function M.add_bookmark()
+	if ui.is_open() then
+		vim.notify('[spelunk.nvim] Cannot create bookmark while UI is open')
+		return
+	end
 	local currstack = current_stack()
 	table.insert(currstack.bookmarks, marks.set_mark_current_pos(#currstack.bookmarks + 1))
 	vim.notify(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
