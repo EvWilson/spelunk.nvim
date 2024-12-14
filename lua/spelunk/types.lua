@@ -56,6 +56,6 @@
 ---@field col integer
 
 ---@class LayoutProvider
----@field bookmark_dimensions fun(): WindowCoords
----@field preview_dimensions fun(): WindowCoords
----@field help_dimensions fun(): WindowCoords
+---@field bookmark_dimensions nil | fun(): WindowCoords
+---@field preview_dimensions nil | fun(): WindowCoords
+---@field help_dimensions nil | fun(): WindowCoords
