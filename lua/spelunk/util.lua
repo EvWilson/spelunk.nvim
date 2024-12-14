@@ -10,7 +10,6 @@ M.get_treesitter_context = function(mark)
 	end
 	local tree = parser:parse()[1]
 	local root = tree:root()
-	local node_at_cursor = root:named_descendant_for_range(mark.line, mark.col, mark.line, mark.col)
 	---@param arr string[]
 	---@param s string
 	---@return boolean
@@ -50,7 +49,8 @@ M.get_treesitter_context = function(mark)
 					'name',
 					'function_name',
 					'class_name',
-					'field_identifier'
+					'field_identifier',
+					'dot_index_expression',
 				}, child:type()) then
 				identifier = child
 			end
@@ -59,7 +59,7 @@ M.get_treesitter_context = function(mark)
 		return get_txt(identifier)
 	end
 	local node_names = {}
-	local current_node = node_at_cursor
+	local current_node = root:named_descendant_for_range(mark.line, mark.col, mark.line, mark.col)
 	while current_node do
 		local node_type = current_node:type()
 		if has({
