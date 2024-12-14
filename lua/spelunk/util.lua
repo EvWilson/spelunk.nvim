@@ -51,6 +51,7 @@ M.get_treesitter_context = function(mark)
 					'class_name',
 					'field_identifier',
 					'dot_index_expression',
+					'method_index_expression',
 				}, child:type()) then
 				identifier = child
 			end
