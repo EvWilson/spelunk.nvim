@@ -433,7 +433,7 @@ function M.setup(c)
 	cfg.apply_base_defaults(base_config)
 	window_config = conf.window_mappings or {}
 	cfg.apply_window_defaults(window_config)
-	ui.setup(base_config, window_config)
+	ui.setup(base_config, window_config, conf.cursor_character or cfg.get_default('cursor_character'))
 
 	require('spelunk.layout').setup(conf.orientation or cfg.get_default('orientation'))
 

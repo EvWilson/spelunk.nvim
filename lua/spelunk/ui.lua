@@ -15,8 +15,12 @@ function M.is_open()
 	return window_id ~= -1 or preview_window_id ~= -1 or help_window_id ~= -1
 end
 
+---@type table
 local base_config
+---@type table
 local window_config
+---@type string
+local cursor_character
 
 local focus_cb
 local unfocus_cb
@@ -98,9 +102,17 @@ local function read_lines(filename, start_line, end_line)
 	return result
 end
 
-function M.setup(base_cfg, window_cfg)
+---@param base_cfg table
+---@param window_cfg table
+---@param cursor_char string
+function M.setup(base_cfg, window_cfg, cursor_char)
 	base_config = base_cfg
 	window_config = window_cfg
+	if type(cursor_char) ~= 'string' or string.len(cursor_char) ~= 1 then
+		vim.notify('[spelunk.nvim] Passed invalid cursor character, falling back to default')
+		cursor_char = '>'
+	end
+	cursor_character = cursor_char
 end
 
 ---@param opts CreateWinOpts
@@ -299,7 +311,7 @@ function M.update_window(opts)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	local content_lines = {}
 	for idx, line in ipairs(opts.lines) do
-		local prefix = idx == opts.cursor_index and '>' or ' '
+		local prefix = idx == opts.cursor_index and cursor_character or ' '
 		table.insert(content_lines, string.format('%s%2d %s', prefix, idx, line))
 	end
 	local content = { 'Current stack: ' .. opts.title, unpack(content_lines) }

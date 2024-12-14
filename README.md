@@ -105,6 +105,8 @@ Here's the default mapping object for reference:
 	orientation = 'vertical',
 	-- Enable to show mark index in status column
 	enable_status_col_display = false,
+	-- The character rendered before the currently selected bookmark in the UI
+	cursor_character = '>',
 }
 ```
 
