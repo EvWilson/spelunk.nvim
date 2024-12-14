@@ -33,6 +33,7 @@ local default_config = {
 	statusline_prefix = '🔖',
 	orientation = 'vertical',
 	enable_status_col_display = false,
+	cursor_character = '>',
 }
 
 ---@param target table

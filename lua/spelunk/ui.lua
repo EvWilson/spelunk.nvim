@@ -15,8 +15,12 @@ function M.is_open()
 	return window_id ~= -1 or preview_window_id ~= -1 or help_window_id ~= -1
 end
 
+---@type table
 local base_config
+---@type table
 local window_config
+---@type string
+local cursor_character
 
 local focus_cb
 local unfocus_cb
@@ -98,9 +102,17 @@ local function read_lines(filename, start_line, end_line)
 	return result
 end
 
-function M.setup(base_cfg, window_cfg)
+---@param base_cfg table
+---@param window_cfg table
+---@param cursor_char string
+function M.setup(base_cfg, window_cfg, cursor_char)
 	base_config = base_cfg
 	window_config = window_cfg
+	if type(cursor_char) ~= 'string' or string.len(cursor_char) ~= 1 then
+		vim.notify('[spelunk.nvim] Passed invalid cursor character, falling back to default')
+		cursor_char = '>'
+	end
+	cursor_character = cursor_char
 end
 
 ---@param opts CreateWinOpts
@@ -120,6 +132,10 @@ local function create_window(opts)
 end
 
 function M.show_help()
+	if not layout.has_help_dimensions() then
+		return
+	end
+
 	unfocus_cb()
 
 	local dims = layout.help_dimensions()
@@ -182,72 +198,79 @@ function M.close_help()
 end
 
 ---@param max_stack_size integer
-function M.create_windows(max_stack_size)
-	local win_dims = layout.bookmark_dimensions()
-	local bufnr, win_id = create_window({
-		title = 'Bookmarks',
-		col = win_dims.col,
-		line = win_dims.line,
-		minwidth = win_dims.base.width,
-		minheight = win_dims.base.height,
-	})
-	window_id = win_id
-
-	local prev_dims = layout.preview_dimensions()
-	local _, prev_id = create_window({
-		title = 'Preview',
-		col = prev_dims.col,
-		line = prev_dims.line,
-		minwidth = prev_dims.base.width,
-		minheight = prev_dims.base.height,
-	})
-	preview_window_id = prev_id
-
-	-- Set up keymaps for navigation within the window
-	local set = require('spelunk.config').set_buf_keymap(bufnr)
-	set(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>', '[spelunk.nvim] Move cursor down')
-	set(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>', '[spelunk.nvim] Move cursor up')
-	set(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>', '[spelunk.nvim] Move bookmark down')
-	set(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>', '[spelunk.nvim] Move bookmark up')
-	set(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>',
-		'[spelunk.nvim] Go to selected bookmark')
-	set(window_config.goto_bookmark_hsplit, ':lua require("spelunk").goto_selected_bookmark_horizontal_split()<CR>',
-		'[spelunk.nvim] Go to selected bookmark, in new horizontal split')
-	set(window_config.goto_bookmark_vsplit, ':lua require("spelunk").goto_selected_bookmark_vertical_split()<CR>',
-		'[spelunk.nvim] Go to selected bookmark, in new vertical split')
-	set(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>',
-		'[spelunk.nvim] Delete selected bookmark')
-	set(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>', '[spelunk.nvim] Go to next stack')
-	set(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>', '[spelunk.nvim] Go to previous stack')
-	set(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>', '[spelunk.nvim] Create new stack')
-	set(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>',
-		'[spelunk.nvim] Delete current stack')
-	set(window_config.edit_stack, ':lua require("spelunk").edit_current_stack()<CR>',
-		'[spelunk.nvim] Edit the name of the current stack')
-	set(window_config.close, ':lua require("spelunk").close_windows()<CR>', '[spelunk.nvim] Close UI')
-	set(window_config.help, ':lua require("spelunk").show_help()<CR>', '[spelunk.nvim] Show help menu')
-
-	for i = 1, max_stack_size do
-		set(tostring(i), string.format(':lua require("spelunk").goto_bookmark_at_index(%d)<CR>', i),
-			string.format('[spelunk.nvim] Go to bookmark at stack position %d', i))
+local create_windows = function(max_stack_size)
+	local bufnr, win_id
+	if layout.has_bookmark_dimensions() then
+		local win_dims = layout.bookmark_dimensions()
+		bufnr, win_id = create_window({
+			title = 'Bookmarks',
+			col = win_dims.col,
+			line = win_dims.line,
+			minwidth = win_dims.base.width,
+			minheight = win_dims.base.height,
+		})
+		window_id = win_id
 	end
 
-	focus_cb, unfocus_cb = persist_focus(win_id, function()
-		if window_ready(window_id) then
-			vim.api.nvim_win_close(window_id, true)
-		end
-		window_id = -1
-		-- Defer preview window cleanup, as running it concurrently to main window
-		-- causes it to not fire
-		vim.schedule(function()
-			if window_ready(preview_window_id) then
-				vim.api.nvim_win_close(preview_window_id, true)
-			end
-			preview_window_id = -1
-		end)
-	end)
+	if layout.has_preview_dimensions() then
+		local prev_dims = layout.preview_dimensions()
+		local _, prev_id = create_window({
+			title = 'Preview',
+			col = prev_dims.col,
+			line = prev_dims.line,
+			minwidth = prev_dims.base.width,
+			minheight = prev_dims.base.height,
+		})
+		preview_window_id = prev_id
+	end
 
-	return bufnr
+	if bufnr then
+		-- Set up keymaps for navigation within the window
+		local set = require('spelunk.config').set_buf_keymap(bufnr)
+		set(window_config.cursor_down, ':lua require("spelunk").move_cursor(1)<CR>', '[spelunk.nvim] Move cursor down')
+		set(window_config.cursor_up, ':lua require("spelunk").move_cursor(-1)<CR>', '[spelunk.nvim] Move cursor up')
+		set(window_config.bookmark_down, ':lua require("spelunk").move_bookmark(1)<CR>',
+			'[spelunk.nvim] Move bookmark down')
+		set(window_config.bookmark_up, ':lua require("spelunk").move_bookmark(-1)<CR>', '[spelunk.nvim] Move bookmark up')
+		set(window_config.goto_bookmark, ':lua require("spelunk").goto_selected_bookmark()<CR>',
+			'[spelunk.nvim] Go to selected bookmark')
+		set(window_config.goto_bookmark_hsplit, ':lua require("spelunk").goto_selected_bookmark_horizontal_split()<CR>',
+			'[spelunk.nvim] Go to selected bookmark, in new horizontal split')
+		set(window_config.goto_bookmark_vsplit, ':lua require("spelunk").goto_selected_bookmark_vertical_split()<CR>',
+			'[spelunk.nvim] Go to selected bookmark, in new vertical split')
+		set(window_config.delete_bookmark, ':lua require("spelunk").delete_selected_bookmark()<CR>',
+			'[spelunk.nvim] Delete selected bookmark')
+		set(window_config.next_stack, ':lua require("spelunk").next_stack()<CR>', '[spelunk.nvim] Go to next stack')
+		set(window_config.previous_stack, ':lua require("spelunk").prev_stack()<CR>',
+			'[spelunk.nvim] Go to previous stack')
+		set(window_config.new_stack, ':lua require("spelunk").new_stack()<CR>', '[spelunk.nvim] Create new stack')
+		set(window_config.delete_stack, ':lua require("spelunk").delete_current_stack()<CR>',
+			'[spelunk.nvim] Delete current stack')
+		set(window_config.edit_stack, ':lua require("spelunk").edit_current_stack()<CR>',
+			'[spelunk.nvim] Edit the name of the current stack')
+		set(window_config.close, ':lua require("spelunk").close_windows()<CR>', '[spelunk.nvim] Close UI')
+		set(window_config.help, ':lua require("spelunk").show_help()<CR>', '[spelunk.nvim] Show help menu')
+
+		for i = 1, max_stack_size do
+			set(tostring(i), string.format(':lua require("spelunk").goto_bookmark_at_index(%d)<CR>', i),
+				string.format('[spelunk.nvim] Go to bookmark at stack position %d', i))
+		end
+
+		focus_cb, unfocus_cb = persist_focus(win_id, function()
+			if window_ready(window_id) then
+				vim.api.nvim_win_close(window_id, true)
+			end
+			window_id = -1
+			-- Defer preview window cleanup, as running it concurrently to main window
+			-- causes it to not fire
+			vim.schedule(function()
+				if window_ready(preview_window_id) then
+					vim.api.nvim_win_close(preview_window_id, true)
+				end
+				preview_window_id = -1
+			end)
+		end)
+	end
 end
 
 ---@param opts UpdateWinOpts
@@ -288,7 +311,7 @@ function M.update_window(opts)
 	vim.api.nvim_set_option_value('modifiable', true, { buf = bufnr })
 	local content_lines = {}
 	for idx, line in ipairs(opts.lines) do
-		local prefix = idx == opts.cursor_index and '>' or ' '
+		local prefix = idx == opts.cursor_index and cursor_character or ' '
 		table.insert(content_lines, string.format('%s%2d %s', prefix, idx, line))
 	end
 	local content = { 'Current stack: ' .. opts.title, unpack(content_lines) }
@@ -312,7 +335,7 @@ function M.toggle_window(opts)
 	if window_ready(window_id) then
 		M.close_windows()
 	else
-		local _ = M.create_windows(opts.max_stack_size)
+		create_windows(opts.max_stack_size)
 		M.update_window(opts)
 		vim.api.nvim_set_current_win(window_id)
 	end

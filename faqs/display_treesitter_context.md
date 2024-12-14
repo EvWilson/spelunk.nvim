@@ -23,7 +23,10 @@ If you'd like to change this to display the Treesitter context for the current m
 		local spelunk = require('spelunk')
 		spelunk.setup()
 		spelunk.display_function = function(mark)
-			return require('spelunk.util').get_treesitter_context(mark)
+			local ctx = require('spelunk.util').get_treesitter_context(mark)
+			ctx = (ctx == '' and ctx) or (' - ' .. ctx)
+			local filename = spelunk.filename_formatter(mark.file)
+			return string.format("%s:%d%s", filename, mark.line, ctx)
 		end
 	end
 }
