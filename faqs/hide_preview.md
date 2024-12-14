@@ -11,6 +11,12 @@ Here's an example of leaving the preview UI pane un-rendered, with a sample `laz
 	},
 	config = function()
 	local spelunk = require('spelunk')
+	local base_dimensions = function()
+		return {
+			width = math.floor(vim.o.columns / 20) * 16,
+			height = math.floor(vim.o.lines / 12) * 5,
+		}
+	end
 	spelunk.setup({
 		orientation = {
 			bookmark_dimensions = function()
