@@ -43,6 +43,7 @@
 ---@field cursor_index integer
 ---@field title string
 ---@field lines string[]
+---@field inline_marks [string, string][] # (text, highlight)
 ---@field bookmark VirtualBookmark
 ---@field max_stack_size integer
 

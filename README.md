@@ -164,6 +164,17 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	end
 	```
 
+- `display_inline_mark_function`
+    - Description: display additional details next to bookmarks
+    - Type: `fun(mark: VirtualBookmark): [string, string]`
+	- Returns: text to display and highlight name (e.g. "Comment" or "Function")
+    - Default value:
+    ```lua
+    M.display_inline_mark_function = function(vmark)
+        return { "", "" }
+    end
+    ```
+
 - `setup(config)`
 	- Description: initialize the plugin, should be called to opt-in to default behavior
 	- Parameters:

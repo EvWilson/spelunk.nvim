@@ -55,6 +55,12 @@ M.display_function = function(mark)
 	return string.format('%s:%d', M.filename_formatter(mark.file), mark.line)
 end
 
+---@param vmark VirtualBookmark
+---@return [string, string]
+M.display_inline_mark_function = function(vmark)
+    return { "", "" }
+end
+
 ---@return integer
 local max_stack_size = function()
 	local max = 0
@@ -70,13 +76,16 @@ end
 ---@return UpdateWinOpts
 local get_win_update_opts = function()
 	local lines = {}
+    local inline_marks = {}
 	for _, vmark in ipairs(current_stack().bookmarks) do
 		table.insert(lines, M.display_function(vmark))
+        table.insert(inline_marks, M.display_inline_mark_function(vmark))
 	end
 	return {
 		cursor_index = cursor_index,
 		title = current_stack().name,
 		lines = lines,
+        inline_marks = inline_marks,
 		bookmark = current_bookmark(),
 		max_stack_size = max_stack_size(),
 	}

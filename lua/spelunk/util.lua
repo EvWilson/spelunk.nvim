@@ -5,7 +5,6 @@ local M = {}
 M.get_treesitter_context = function(mark)
 	local ok, parser = pcall(vim.treesitter.get_parser, mark.bufnr)
 	if not ok then
-		vim.notify('[spelunk.nvim] get_treesitter_context failed to set up parser: ' .. parser)
 		return ''
 	end
 	local tree = parser:parse()[1]

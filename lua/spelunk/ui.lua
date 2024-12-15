@@ -318,6 +318,17 @@ function M.update_window(opts)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
 	vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
 
+    local virt_text_ns = vim.api.nvim_create_namespace("")
+    for line_nr, virt_text in ipairs(opts.inline_marks) do
+        local line, _ = unpack(virt_text)
+        if line ~= "" then
+            vim.api.nvim_buf_set_extmark(
+                bufnr, virt_text_ns, line_nr, 0,
+                { virt_text = { virt_text }, virt_text_pos = "eol", }
+            )
+        end
+    end
+
 	-- Move cursor to the selected line
 	local offset
 	if #opts.lines > 0 then
