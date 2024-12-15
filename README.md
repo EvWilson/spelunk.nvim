@@ -13,11 +13,16 @@ Programming often involves navigating between similar points of interest. Additi
 - Capture and manage bookmarks as stacks of line number locations
 - Opt-in persistence of bookmarks on a per-directory basis
 - Togglable UI, with contextual and rebindable controls
+	- Can also customize layout and panel rendering
 - Cycle bookmarks via keybind
 - Jump directly to bookmark by index
 - Telescope integration - fuzzy find over bookmarks and stacks
 - Lualine integration - show the number of bookmarks in the current buffer
 - Sign column index display
+- Mark aliases
+- Treesitter integration - show grammar context
+
+See the `faqs/` directory for more custom setup guides.
 
 ## Requirements
 Neovim (**stable** only) >= 0.10.0
@@ -29,8 +34,9 @@ require('lazy').setup({
 	{
 		'EvWilson/spelunk.nvim',
 		dependencies = {
-			'nvim-lua/plenary.nvim',         -- For window drawing utilities
-			'nvim-telescope/telescope.nvim', -- Optional: for fuzzy search capabilities
+			'nvim-lua/plenary.nvim',           -- For window drawing utilities
+			'nvim-telescope/telescope.nvim',   -- Optional: for fuzzy search capabilities
+			'nvim-treesitter/nvim-treesitter', -- Optional: for showing grammar context
 		},
 		config = function()
 			require('spelunk').setup({
@@ -280,3 +286,4 @@ Currently there are guides on:
 - Providing a custom formatter for display filenames
 - Overriding the display function altogether to show Treesitter context instead of mark location
 - Not rendering the preview UI pane, which applies to all UI panes
+- Setting custom aliases for marks
