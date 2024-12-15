@@ -34,6 +34,7 @@ local set_mark = function(mark, idx)
 		col = mark.col,
 		bufnr = bufnr,
 		mark_id = mark_id,
+		meta = mark.meta,
 	}
 end
 
@@ -51,12 +52,14 @@ M.virt_to_physical = function(virt)
 			file = virt.file,
 			line = virt.line,
 			col = virt.col,
+			meta = virt.meta,
 		}, 0)
 	end
 	return {
 		file = vim.api.nvim_buf_get_name(virt.bufnr),
 		line = mark[1] + 1,
 		col = mark[2] + 1,
+		meta = virt.meta,
 	}
 end
 
@@ -81,6 +84,7 @@ M.set_mark_current_pos = function(idx)
 		file = vim.api.nvim_buf_get_name(0),
 		line = vim.fn.line('.'),
 		col = vim.fn.col('.'),
+		meta = {},
 	}, idx)
 end
 

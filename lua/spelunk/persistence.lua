@@ -122,10 +122,14 @@ function M.load()
 
 	-- TODO: Remove this eventually
 	-- Stored marks did not originally have column field, this is a soft migration helper
+	-- Next, marks did not originally have a meta field
 	for _, v in pairs(tbl) do
 		for _, mark in pairs(v.bookmarks) do
 			if mark.col == nil then
 				mark.col = 0
+			end
+			if mark.meta == nil then
+				mark.meta = {}
 			end
 		end
 	end

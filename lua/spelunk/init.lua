@@ -143,7 +143,7 @@ end
 
 ---@param direction 1 | -1
 function M.move_cursor(direction)
-	local bookmarks = bookmark_stacks[current_stack_index].bookmarks
+	local bookmarks = current_stack().bookmarks
 	cursor_index = cursor_index + direction
 	if cursor_index < 1 then
 		cursor_index = math.max(#bookmarks, 1)
@@ -308,6 +308,7 @@ function M.all_full_marks()
 				file = mark.file,
 				line = mark.line,
 				col = mark.col,
+				meta = mark.meta,
 			})
 		end
 	end
@@ -341,6 +342,7 @@ function M.current_full_marks()
 			file = mark.file,
 			line = mark.line,
 			col = mark.col,
+			meta = mark.meta,
 		})
 	end
 	return data
@@ -424,6 +426,18 @@ M.qf_current_marks = function()
 		table.insert(vmarks, vmark)
 	end
 	open_marks_qf(vmarks)
+end
+
+---@param field string
+---@param val any
+M.add_mark_meta = function(field, val)
+	current_bookmark().meta[field] = val
+end
+
+---@param mark VirtualBookmark | PhysicalBookmark
+---@return any | nil
+M.get_mark_meta = function(mark, field)
+	return mark.meta[field]
 end
 
 function M.setup(c)
