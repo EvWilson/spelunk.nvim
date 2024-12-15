@@ -95,17 +95,6 @@ M.get_treesitter_context = function(mark)
 	return table.concat(reverse_table(node_names), '.')
 end
 
----@param tbl table | nil
----@return integer
-M.tbllen = function(tbl)
-	if tbl == nil then
-		return 0
-	end
-	local count = 0
-	for _ in pairs(tbl) do count = count + 1 end
-	return count
-end
-
 ---@param tbl table
 ---@return table
 M.copy_tbl = function(tbl)

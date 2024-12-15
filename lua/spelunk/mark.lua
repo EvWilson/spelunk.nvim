@@ -126,7 +126,7 @@ end
 M.setup = function(stacks, show_status, enable_persist, persist_cb, get_stack_cb)
 	show_status_col = show_status
 
-	if util.tbllen(stacks) == 0 then
+	if #stacks == 0 then
 		return {}
 	end
 
