@@ -52,6 +52,7 @@ M.virt_to_physical = function(virt)
 			col = virt.col,
 			meta = virt.meta,
 		}, 0)
+		_, mark = get_mark(virt)
 	end
 	return {
 		file = vim.api.nvim_buf_get_name(virt.bufnr),
