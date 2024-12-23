@@ -353,7 +353,14 @@ function M.search_current_marks()
 		vim.notify('[spelunk.nvim] Install telescope.nvim to search current marks')
 		return
 	end
-	tele.search_marks('[spelunk.nvim] Current Stack', current_stack(), goto_position)
+	local data = {}
+	local stack = current_stack()
+	for _, vmark in ipairs(stack.bookmarks) do
+		local copy = util.copy_tbl(vmark)
+		copy.stack = stack.name
+		table.insert(data, copy)
+	end
+	tele.search_marks('[spelunk.nvim] Current Stack', data, goto_position)
 end
 
 function M.search_stacks()
