@@ -28,6 +28,9 @@ local unfocus_cb
 ---@type string[]
 local border_chars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
 
+---@type integer | nil
+M.previous_win_id = nil
+
 ---@param id integer
 local function window_ready(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
@@ -199,6 +202,7 @@ end
 
 ---@param max_stack_size integer
 local create_windows = function(max_stack_size)
+	M.previous_win_id = vim.api.nvim_get_current_win()
 	local bufnr, win_id
 	if layout.has_bookmark_dimensions() then
 		local win_dims = layout.bookmark_dimensions()
@@ -344,6 +348,7 @@ end
 function M.close_windows()
 	if window_ready(window_id) then
 		vim.api.nvim_win_close(window_id, true)
+		vim.api.nvim_set_current_win(M.previous_win_id)
 	end
 end
 

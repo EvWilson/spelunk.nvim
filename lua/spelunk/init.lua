@@ -28,9 +28,6 @@ local statusline_prefix
 ---@type boolean
 local show_status_col
 
----@type integer
-local previous_win_id
-
 ---@return VirtualStack[]
 local get_stacks = function()
 	return bookmark_stacks
@@ -101,13 +98,9 @@ local goto_position = function(file, line, col, split)
 		vim.notify('[spelunk.nvim] file being navigated to does not seem to exist: ' .. file)
 		return
 	end
-	local win_id = previous_win_id or 0
 	if not split then
-		if win_id ~= 0 then
-			vim.api.nvim_set_current_win(win_id)
-		end
 		vim.api.nvim_command('edit ' .. file)
-		vim.api.nvim_win_set_cursor(win_id, { line, col })
+		vim.api.nvim_win_set_cursor(0, { line, col })
 	elseif split == 'vertical' then
 		vim.api.nvim_command('vsplit ' .. file)
 		local new_win = vim.api.nvim_get_current_win()
@@ -122,9 +115,6 @@ local goto_position = function(file, line, col, split)
 end
 
 function M.toggle_window()
-	if not ui.is_open() then
-		previous_win_id = vim.api.nvim_get_current_win()
-	end
 	ui.toggle_window(get_win_update_opts())
 end
 
