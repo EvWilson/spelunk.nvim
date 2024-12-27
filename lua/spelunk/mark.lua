@@ -87,6 +87,12 @@ M.set_mark_current_pos = function(idx)
 	}, idx)
 end
 
+M.get_mark_current_pos = function()
+	local line = vim.fn.line(".") - 1
+	local col = vim.fn.col(".") - 1
+	return vim.api.nvim_buf_get_extmarks(0, ns_id, { line, col }, { line, col }, {})[1]
+end
+
 ---@param virt VirtualBookmark
 ---@return boolean
 M.delete_mark = function(virt)

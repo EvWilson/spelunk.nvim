@@ -136,6 +136,10 @@ function M.add_bookmark()
 		return
 	end
 	local currstack = current_stack()
+  if marks.get_mark_current_pos() then
+    vim.notify('[spelunk.nvim] Bookmark already exists at current position')
+    return
+  end
 	table.insert(currstack.bookmarks, marks.set_mark_current_pos(#currstack.bookmarks + 1))
 	vim.notify(string.format("[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
 		currstack.name, vim.fn.expand('%:p'), vim.fn.line('.'), vim.fn.col('.')))
