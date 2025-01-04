@@ -117,6 +117,7 @@ Here's the default mapping object for reference:
 ```
 
 Want to not set a keybind for a given action? Set the bound value to `'NONE'` and it will skip being set.
+Keybinds can be set to either individual strings or arrays of strings, so for example `window_mappings.cursor_down` above could be mapped to `{ 'j', '<leader>s' }`.
 
 Check the mentioned help screen to see current keybinds and their use:
 
