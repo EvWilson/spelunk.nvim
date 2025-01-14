@@ -322,6 +322,9 @@ function M.search_marks()
 		vim.notify('[spelunk.nvim] Install telescope.nvim to search marks')
 		return
 	end
+	if ui.is_open() then
+		return
+	end
 	local data = {}
 	for _, stack in ipairs(bookmark_stacks) do
 		for _, vmark in ipairs(stack.bookmarks) do
@@ -355,6 +358,9 @@ function M.search_current_marks()
 		vim.notify('[spelunk.nvim] Install telescope.nvim to search current marks')
 		return
 	end
+	if ui.is_open() then
+		return
+	end
 	local data = {}
 	local stack = current_stack()
 	for _, vmark in ipairs(stack.bookmarks) do
@@ -368,6 +374,9 @@ end
 function M.search_stacks()
 	if not tele then
 		vim.notify('[spelunk.nvim] Install telescope.nvim to search stacks')
+		return
+	end
+	if ui.is_open() then
 		return
 	end
 	---@param stack PhysicalStack
