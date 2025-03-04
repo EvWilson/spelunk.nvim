@@ -16,7 +16,10 @@ end
 ---@return VirtualBookmark
 local set_mark = function(mark, idx)
 	local bufnr = vim.fn.bufadd(mark.file)
+	local old_swapfile = vim.o.swapfile
+	vim.o.swapfile = false
 	vim.fn.bufload(bufnr)
+	vim.o.swapfile = old_swapfile
 	local opts = {
 		strict = false,
 		right_gravity = true,
