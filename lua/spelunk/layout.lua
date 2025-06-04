@@ -15,7 +15,7 @@ end
 
 ---@return boolean
 local function vert()
-	return orientation == 'vertical'
+	return orientation == "vertical"
 end
 
 ---@return BaseDimensions
@@ -104,10 +104,10 @@ end
 
 ---@param o 'vertical' | 'horizontal' | LayoutProvider
 function M.setup(o)
-	if o ~= 'vertical' and o ~= 'horizontal' and type(o) ~= 'table' then
-		error('[spelunk.nvim] Layout engine passed an unsupported orientation: ' .. vim.inspect(o))
+	if o ~= "vertical" and o ~= "horizontal" and type(o) ~= "table" then
+		error("[spelunk.nvim] Layout engine passed an unsupported orientation: " .. vim.inspect(o))
 	end
-	if type(o) == 'string' then
+	if type(o) == "string" then
 		M.bookmark_dimensions = bookmark_dimension_func
 		M.preview_dimensions = preview_dimension_func
 		M.help_dimensions = help_dimension_func

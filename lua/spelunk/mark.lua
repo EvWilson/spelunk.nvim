@@ -1,7 +1,7 @@
 local M = {}
 
 ---@type integer
-local ns_id = vim.api.nvim_create_namespace('spelunk')
+local ns_id = vim.api.nvim_create_namespace("spelunk")
 
 local show_status_col
 
@@ -84,8 +84,8 @@ end
 M.set_mark_current_pos = function(idx)
 	return set_mark({
 		file = vim.api.nvim_buf_get_name(0),
-		line = vim.fn.line('.'),
-		col = vim.fn.col('.'),
+		line = vim.fn.line("."),
+		col = vim.fn.col("."),
 		meta = {},
 	}, idx)
 end
@@ -144,10 +144,10 @@ M.setup = function(stacks, show_status, enable_persist, persist_cb, get_stack_cb
 
 	-- Create a callback to persist changes to mark locations on file updates
 	if enable_persist then
-		local persist_augroup = vim.api.nvim_create_augroup('SpelunkPersistCallback', { clear = true })
-		vim.api.nvim_create_autocmd('BufWritePost', {
+		local persist_augroup = vim.api.nvim_create_augroup("SpelunkPersistCallback", { clear = true })
+		vim.api.nvim_create_autocmd("BufWritePost", {
 			group = persist_augroup,
-			pattern = '*',
+			pattern = "*",
 			callback = function(ctx)
 				local bufnr = ctx.buf
 				if not bufnr then
@@ -162,7 +162,7 @@ M.setup = function(stacks, show_status, enable_persist, persist_cb, get_stack_cb
 					end
 				end
 			end,
-			desc = '[spelunk.nvim] Persist mark updates on file change'
+			desc = "[spelunk.nvim] Persist mark updates on file change",
 		})
 	end
 

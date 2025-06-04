@@ -3,17 +3,17 @@ if not status_ok then
 	return false
 end
 
-local pickers = require('telescope.pickers')
-local finders = require('telescope.finders')
-local conf = require('telescope.config').values
-local actions = require('telescope.actions')
-local action_state = require('telescope.actions.state')
-local previewers = require('telescope.previewers')
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local previewers = require("telescope.previewers")
 
 local M = {}
 
 local file_previewer = previewers.new_buffer_previewer({
-	title = 'Preview',
+	title = "Preview",
 	get_buffer_by_name = function(_, entry)
 		return entry.filename
 	end,
@@ -29,10 +29,10 @@ local file_previewer = previewers.new_buffer_previewer({
 		vim.schedule(function()
 			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
 			-- Center the view on the line
-			local top = vim.fn.line('w0', self.state.winid)
-			local bot = vim.fn.line('w$', self.state.winid)
+			local top = vim.fn.line("w0", self.state.winid)
+			local bot = vim.fn.line("w$", self.state.winid)
 			local center = math.floor(top + (bot - top) / 2)
-			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, 'Search', center - 1, 0, -1)
+			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", center - 1, 0, -1)
 		end)
 	end,
 })
@@ -43,31 +43,33 @@ local file_previewer = previewers.new_buffer_previewer({
 M.search_marks = function(prompt, data, cb)
 	local opts = {}
 
-	pickers.new(opts, {
-		prompt_title = prompt,
-		finder = finders.new_table {
-			results = data,
-			---@param entry VirtualBookmarkWithStack
-			entry_maker = function(entry)
-				local display_str = string.format('%s.%s', entry.stack, require('spelunk').display_function(entry))
-				return {
-					value = entry,
-					display = display_str,
-					ordinal = display_str,
-				}
-			end
-		},
-		sorter = conf.generic_sorter(opts),
-		attach_mappings = function(prompt_bufnr, _)
-			actions.select_default:replace(function()
-				local selection = action_state.get_selected_entry()
-				actions.close(prompt_bufnr)
-				cb(selection.value.file, selection.value.line, selection.value.col)
-			end)
-			return true
-		end,
-		previewer = file_previewer,
-	}):find()
+	pickers
+		.new(opts, {
+			prompt_title = prompt,
+			finder = finders.new_table({
+				results = data,
+				---@param entry VirtualBookmarkWithStack
+				entry_maker = function(entry)
+					local display_str = string.format("%s.%s", entry.stack, require("spelunk").display_function(entry))
+					return {
+						value = entry,
+						display = display_str,
+						ordinal = display_str,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter(opts),
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					local selection = action_state.get_selected_entry()
+					actions.close(prompt_bufnr)
+					cb(selection.value.file, selection.value.line, selection.value.col)
+				end)
+				return true
+			end,
+			previewer = file_previewer,
+		})
+		:find()
 end
 
 ---@param prompt string
@@ -76,29 +78,31 @@ end
 M.search_stacks = function(prompt, data, cb)
 	local opts = {}
 
-	pickers.new(opts, {
-		prompt_title = prompt,
-		finder = finders.new_table {
-			results = data,
-			entry_maker = function(entry)
-				local display_str = entry.name
-				return {
-					value = entry,
-					display = display_str,
-					ordinal = display_str,
-				}
-			end
-		},
-		sorter = conf.generic_sorter(opts),
-		attach_mappings = function(prompt_bufnr, _)
-			actions.select_default:replace(function()
-				local selection = action_state.get_selected_entry()
-				actions.close(prompt_bufnr)
-				cb(selection.value)
-			end)
-			return true
-		end,
-	}):find()
+	pickers
+		.new(opts, {
+			prompt_title = prompt,
+			finder = finders.new_table({
+				results = data,
+				entry_maker = function(entry)
+					local display_str = entry.name
+					return {
+						value = entry,
+						display = display_str,
+						ordinal = display_str,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter(opts),
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					local selection = action_state.get_selected_entry()
+					actions.close(prompt_bufnr)
+					cb(selection.value)
+				end)
+				return true
+			end,
+		})
+		:find()
 end
 
 return M
