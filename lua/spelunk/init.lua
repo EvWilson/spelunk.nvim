@@ -114,23 +114,23 @@ local goto_position = function(file, line, col, split)
 	end
 end
 
-function M.toggle_window()
+M.toggle_window = function()
 	ui.toggle_window(get_win_update_opts())
 end
 
-function M.close_windows()
+M.close_windows = function()
 	ui.close_windows()
 end
 
-function M.show_help()
+M.show_help = function()
 	ui.show_help()
 end
 
-function M.close_help()
+M.close_help = function()
 	ui.close_help()
 end
 
-function M.add_bookmark()
+M.add_bookmark = function()
 	if ui.is_open() then
 		vim.notify("[spelunk.nvim] Cannot create bookmark while UI is open")
 		return
@@ -151,7 +151,7 @@ function M.add_bookmark()
 end
 
 ---@param direction 1 | -1
-function M.move_cursor(direction)
+M.move_cursor = function(direction)
 	local bookmarks = current_stack().bookmarks
 	cursor_index = cursor_index + direction
 	if cursor_index < 1 then
@@ -163,7 +163,7 @@ function M.move_cursor(direction)
 end
 
 ---@param direction 1 | -1
-function M.move_bookmark(direction)
+M.move_bookmark = function(direction)
 	if direction ~= 1 and direction ~= -1 then
 		vim.notify("[spelunk.nvim] move_bookmark passed invalid direction")
 		return
@@ -186,7 +186,7 @@ end
 
 ---@param close boolean
 ---@param split string | nil
-local function goto_bookmark(close, split)
+local goto_bookmark = function(close, split)
 	local bookmarks = current_stack().bookmarks
 	local mark = marks.virt_to_physical(current_bookmark())
 	if cursor_index > 0 and cursor_index <= #bookmarks then
@@ -200,7 +200,7 @@ local function goto_bookmark(close, split)
 end
 
 ---@param idx integer
-function M.goto_bookmark_at_index(idx)
+M.goto_bookmark_at_index = function(idx)
 	if idx < 1 or idx > #current_stack().bookmarks then
 		vim.notify("[spelunk.nvim] Given invalid index: " .. idx)
 		return
@@ -209,19 +209,19 @@ function M.goto_bookmark_at_index(idx)
 	goto_bookmark(true)
 end
 
-function M.goto_selected_bookmark()
+M.goto_selected_bookmark = function()
 	goto_bookmark(true)
 end
 
-function M.goto_selected_bookmark_horizontal_split()
+M.goto_selected_bookmark_horizontal_split = function()
 	goto_bookmark(true, "horizontal")
 end
 
-function M.goto_selected_bookmark_vertical_split()
+M.goto_selected_bookmark_vertical_split = function()
 	goto_bookmark(true, "vertical")
 end
 
-function M.delete_selected_bookmark()
+M.delete_selected_bookmark = function()
 	local bookmarks = current_stack().bookmarks
 	if not bookmarks[cursor_index] then
 		return
@@ -236,7 +236,7 @@ function M.delete_selected_bookmark()
 end
 
 ---@param direction 1 | -1
-function M.select_and_goto_bookmark(direction)
+M.select_and_goto_bookmark = function(direction)
 	if ui.is_open() then
 		return
 	end
@@ -248,7 +248,7 @@ function M.select_and_goto_bookmark(direction)
 	goto_bookmark(false)
 end
 
-function M.delete_current_stack()
+M.delete_current_stack = function()
 	if #bookmark_stacks < 2 then
 		vim.notify("[spelunk.nvim] Cannot delete a stack when you have less than two")
 		return
@@ -263,7 +263,7 @@ function M.delete_current_stack()
 	M.persist()
 end
 
-function M.edit_current_stack()
+M.edit_current_stack = function()
 	local stack = current_stack()
 	if not stack then
 		return
@@ -277,19 +277,19 @@ function M.edit_current_stack()
 	M.persist()
 end
 
-function M.next_stack()
+M.next_stack = function()
 	current_stack_index = current_stack_index % #bookmark_stacks + 1
 	cursor_index = 1
 	update_window(false)
 end
 
-function M.prev_stack()
+M.prev_stack = function()
 	current_stack_index = (current_stack_index - 2) % #bookmark_stacks + 1
 	cursor_index = 1
 	update_window(false)
 end
 
-function M.new_stack()
+M.new_stack = function()
 	local name = vim.fn.input("[spelunk.nvim] Enter name for new stack: ")
 	if name and name ~= "" then
 		table.insert(bookmark_stacks, { name = name, bookmarks = {} })
@@ -300,14 +300,14 @@ function M.new_stack()
 	M.persist()
 end
 
-function M.persist()
+M.persist = function()
 	if enable_persist then
 		persist.save(marks.virt_to_physical_stack(bookmark_stacks))
 	end
 end
 
 ---@return FullBookmark[]
-function M.all_full_marks()
+M.all_full_marks = function()
 	local data = {}
 	for _, stack in ipairs(bookmark_stacks) do
 		for _, vmark in ipairs(stack.bookmarks) do
@@ -324,7 +324,7 @@ function M.all_full_marks()
 	return data
 end
 
-function M.search_marks()
+M.search_marks = function()
 	if not tele then
 		vim.notify("[spelunk.nvim] Install telescope.nvim to search marks")
 		return
@@ -345,7 +345,7 @@ function M.search_marks()
 end
 
 ---@return FullBookmark[]
-function M.current_full_marks()
+M.current_full_marks = function()
 	local data = {}
 	local stack = current_stack()
 	for _, vmark in ipairs(stack.bookmarks) do
@@ -361,7 +361,7 @@ function M.current_full_marks()
 	return data
 end
 
-function M.search_current_marks()
+M.search_current_marks = function()
 	if not tele then
 		vim.notify("[spelunk.nvim] Install telescope.nvim to search current marks")
 		return
@@ -380,7 +380,7 @@ function M.search_current_marks()
 	tele.search_marks("[spelunk.nvim] Current Stack", data, goto_position)
 end
 
-function M.search_stacks()
+M.search_stacks = function()
 	if not tele then
 		vim.notify("[spelunk.nvim] Install telescope.nvim to search stacks")
 		return
@@ -407,7 +407,7 @@ function M.search_stacks()
 end
 
 ---@return string
-function M.statusline()
+M.statusline = function()
 	local count = 0
 	local path = vim.fn.expand("%:p")
 	for _, stack in ipairs(bookmark_stacks) do
@@ -468,7 +468,7 @@ M.get_mark_meta = function(mark, field)
 	return mark.meta[field]
 end
 
-function M.setup(c)
+M.setup = function(c)
 	local conf = c or {}
 	local cfg = require("spelunk.config")
 	local base_config = conf.base_mappings or {}
@@ -480,6 +480,8 @@ function M.setup(c)
 	require("spelunk.layout").setup(conf.orientation or cfg.get_default("orientation"))
 
 	show_status_col = conf.enable_status_col_display or cfg.get_default("enable_status_col_display")
+
+	persist.setup(conf.persist_by_git_branch or cfg.get_default("persist_by_git_branch"))
 
 	-- This does a whole lot of work on setup, and can potentially delay the loading of other plugins
 	-- In the worst case, this has blocked the loading of LSP servers, possibly by timeout

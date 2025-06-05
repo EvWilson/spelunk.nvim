@@ -1,15 +1,12 @@
 local M = {}
 
-local statepath = vim.fn.stdpath("state")
-if type(statepath) == "table" then
-	statepath = statepath[1]
-end
-local state_dir = vim.fs.joinpath(statepath, "spelunk")
-local cwd_str = (vim.fn.getcwd() .. ".lua"):gsub('[/\\:*?"<>|]', "_")
-local path = vim.fs.joinpath(state_dir, cwd_str)
+--@type string
+local state_dir
+--@type string
+local path
 
 ---@return string
-local function exportstring(s)
+local exportstring = function(s)
 	return string.format("%q", s)
 end
 
@@ -18,7 +15,7 @@ end
 
 ---@param tbl PhysicalStack[]
 ---@param filename string
-local function savetbl(tbl, filename)
+local savetbl = function(tbl, filename)
 	local charS, charE = "   ", "\n"
 	local file, err = io.open(filename, "wb")
 	if err then
@@ -87,7 +84,7 @@ local function savetbl(tbl, filename)
 end
 
 ---@return PhysicalStack[] | nil
-local function loadtbl(sfile)
+local loadtbl = function(sfile)
 	local ftables, err = loadfile(sfile)
 	if err then
 		return nil
@@ -113,8 +110,82 @@ local function loadtbl(sfile)
 	return tables[1]
 end
 
+--@param name string
+local sanitize_git_branch = function(name)
+	if not name or name == "" then
+		return ""
+	end
+
+	local problematic_chars = {
+		"/",
+		"\\",
+		":",
+		"*",
+		"?",
+		"<",
+		">",
+		"|",
+		'"',
+		"#",
+		"%",
+	}
+
+	local sanitized = name
+	for _, char in pairs(problematic_chars) do
+		sanitized = sanitized:gsub(vim.pesc(char), "_")
+	end
+
+	-- Collapse repeated spaces and underscores
+	sanitized = sanitized:gsub("%s+", "_")
+	sanitized = sanitized:gsub("_+", "_")
+
+	-- Trim leading and trailing spaces/underscores
+	sanitized = sanitized:gsub("^[%s_]+", "")
+	sanitized = sanitized:gsub("[%s_]+$", "")
+
+	if sanitized == "" then
+		sanitized = "sanitized"
+	end
+
+	return sanitized
+end
+
+--@return string | nil
+local get_git_branch = function()
+	local ok, result = pcall(function()
+		return vim.system({ "git", "branch", "--show-current" }, { cwd = vim.fn.getcwd() }):wait()
+	end)
+	if not ok then
+		vim.notify("[spelunk.nvim] Error retrieving git branch for persistence")
+		return nil
+	end
+	if result and result.code == 0 then
+		local branch = vim.trim(result.stdout)
+		return branch ~= "" and branch or nil
+	end
+	return nil
+end
+
+--@param usebranches boolean
+M.setup = function(usebranches)
+	local statepath = vim.fn.stdpath("state")
+	if type(statepath) == "table" then
+		statepath = statepath[1]
+	end
+	state_dir = vim.fs.joinpath(statepath, "spelunk")
+	local cwd_str = vim.fn.getcwd():gsub('[/\\:*?"<>|]', "_")
+	local branch = ""
+	if usebranches then
+		local maybe_branch = sanitize_git_branch(get_git_branch())
+		if maybe_branch then
+			branch = maybe_branch
+		end
+	end
+	path = vim.fs.joinpath(state_dir, cwd_str .. branch .. ".lua")
+end
+
 ---@param tbl PhysicalStack[]
-function M.save(tbl)
+M.save = function(tbl)
 	if vim.fn.isdirectory(state_dir) == 0 then
 		vim.fn.mkdir(state_dir, "p")
 	end
@@ -122,7 +193,7 @@ function M.save(tbl)
 end
 
 ---@return PhysicalStack[] | nil
-function M.load()
+M.load = function()
 	local tbl = loadtbl(path)
 	if tbl == nil then
 		return nil
