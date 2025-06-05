@@ -34,6 +34,7 @@ local default_config = {
 	orientation = "vertical",
 	enable_status_col_display = false,
 	cursor_character = ">",
+	persist_by_git_branch = false,
 }
 
 ---@param target table

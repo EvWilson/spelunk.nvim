@@ -20,12 +20,13 @@ Programming often involves navigating between similar points of interest. Additi
 - Lualine integration - show the number of bookmarks in the current buffer
 - Sign column index display
 - Mark aliases
-- Treesitter integration - show grammar context
+- Treesitter integration - optionally show grammar context
+- Opt-in git branch persistence scoping
 
 See the `faqs/` directory for more custom setup guides.
 
 ## Requirements
-Neovim (**stable** only) >= 0.10.0
+Neovim (**stable** only) >= 0.11.0
 
 ## Installation/Configuration
 Via [lazy](https://github.com/folke/lazy.nvim):
@@ -113,6 +114,8 @@ Here's the default mapping object for reference:
 	enable_status_col_display = false,
 	-- The character rendered before the currently selected bookmark in the UI
 	cursor_character = '>',
+    -- Set whether or not to persist bookmarks per git branch
+    persist_by_git_branch = false,
 }
 ```
 

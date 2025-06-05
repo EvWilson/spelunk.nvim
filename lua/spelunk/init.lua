@@ -481,6 +481,8 @@ function M.setup(c)
 
 	show_status_col = conf.enable_status_col_display or cfg.get_default("enable_status_col_display")
 
+	persist.setup(conf.persist_by_git_branch or cfg.get_default("persist_by_git_branch"))
+
 	-- This does a whole lot of work on setup, and can potentially delay the loading of other plugins
 	-- In the worst case, this has blocked the loading of LSP servers, possibly by timeout
 	-- Adding something like a `lazy.nvim` `VeryLazy` event spec doesn't work in all cases,
