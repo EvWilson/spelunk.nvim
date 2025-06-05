@@ -11,7 +11,7 @@ local preview_window_id = -1
 local help_window_id = -1
 
 ---@return boolean
-function M.is_open()
+M.is_open = function()
 	return window_id ~= -1 or preview_window_id ~= -1 or help_window_id ~= -1
 end
 
@@ -32,13 +32,13 @@ local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 M.previous_win_id = nil
 
 ---@param id integer
-local function window_ready(id)
+local window_ready = function(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
 end
 
 ---@param win_id integer
 ---@param cleanup function
-local function persist_focus(win_id, cleanup)
+local persist_focus = function(win_id, cleanup)
 	local bufnr = vim.api.nvim_win_get_buf(win_id)
 	local group_name = string.format("SpelunkPersistFocus_%d", bufnr)
 
@@ -86,7 +86,7 @@ end
 ---@param start_line integer
 ---@param end_line integer
 ---@return string[]
-local function read_lines(filename, start_line, end_line)
+local read_lines = function(filename, start_line, end_line)
 	local ok, lines = pcall(vim.fn.readfile, filename)
 	if not ok then
 		return { "[spelunk.nvim] Could not read file: " .. filename }
@@ -108,7 +108,7 @@ end
 ---@param base_cfg table
 ---@param window_cfg table
 ---@param cursor_char string
-function M.setup(base_cfg, window_cfg, cursor_char)
+M.setup = function(base_cfg, window_cfg, cursor_char)
 	base_config = base_cfg
 	window_config = window_cfg
 	if type(cursor_char) ~= "string" or string.len(cursor_char) ~= 1 then
@@ -119,7 +119,7 @@ function M.setup(base_cfg, window_cfg, cursor_char)
 end
 
 ---@param opts CreateWinOpts
-local function create_window(opts)
+local create_window = function(opts)
 	local bufnr = vim.api.nvim_create_buf(false, true)
 	local win_id = popup.create(bufnr, {
 		title = opts.title,
@@ -134,7 +134,7 @@ local function create_window(opts)
 	return bufnr, win_id
 end
 
-function M.show_help()
+M.show_help = function()
 	if not layout.has_help_dimensions() then
 		return
 	end
@@ -211,7 +211,7 @@ function M.show_help()
 	end)
 end
 
-function M.close_help()
+M.close_help = function()
 	vim.api.nvim_win_close(help_window_id, true)
 end
 
@@ -324,7 +324,7 @@ local create_windows = function(max_stack_size)
 end
 
 ---@param opts UpdateWinOpts
-local function update_preview(opts)
+local update_preview = function(opts)
 	local bookmark
 	if opts.bookmark then
 		bookmark = require("spelunk.mark").virt_to_physical(opts.bookmark)
@@ -352,7 +352,7 @@ local function update_preview(opts)
 end
 
 ---@param opts UpdateWinOpts
-function M.update_window(opts)
+M.update_window = function(opts)
 	if not window_ready(window_id) then
 		return
 	end
@@ -381,7 +381,7 @@ function M.update_window(opts)
 end
 
 ---@param opts UpdateWinOpts
-function M.toggle_window(opts)
+M.toggle_window = function(opts)
 	if window_ready(window_id) then
 		M.close_windows()
 	else
@@ -391,7 +391,7 @@ function M.toggle_window(opts)
 	end
 end
 
-function M.close_windows()
+M.close_windows = function()
 	if window_ready(window_id) then
 		vim.api.nvim_win_close(window_id, true)
 		vim.api.nvim_set_current_win(M.previous_win_id)

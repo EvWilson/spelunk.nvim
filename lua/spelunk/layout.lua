@@ -4,22 +4,22 @@ local M = {}
 local orientation
 
 ---@return integer
-local function width_portion()
+local width_portion = function()
 	return math.floor(vim.o.columns / 20)
 end
 
 ---@return integer
-local function height_portion()
+local height_portion = function()
 	return math.floor(vim.o.lines / 12)
 end
 
 ---@return boolean
-local function vert()
+local vert = function()
 	return orientation == "vertical"
 end
 
 ---@return BaseDimensions
-function M.base_dimensions()
+M.base_dimensions = function()
 	if vert() then
 		return {
 			width = width_portion() * 8,
@@ -103,7 +103,7 @@ M.has_help_dimensions = function()
 end
 
 ---@param o 'vertical' | 'horizontal' | LayoutProvider
-function M.setup(o)
+M.setup = function(o)
 	if o ~= "vertical" and o ~= "horizontal" and type(o) ~= "table" then
 		error("[spelunk.nvim] Layout engine passed an unsupported orientation: " .. vim.inspect(o))
 	end

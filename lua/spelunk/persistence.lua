@@ -151,7 +151,7 @@ local sanitize_git_branch = function(name)
 end
 
 --@return string | nil
-local function get_git_branch()
+local get_git_branch = function()
 	local ok, result = pcall(function()
 		return vim.system({ "git", "branch", "--show-current" }, { cwd = vim.fn.getcwd() }):wait()
 	end)
@@ -167,7 +167,7 @@ local function get_git_branch()
 end
 
 --@param usebranches boolean
-function M.setup(usebranches)
+M.setup = function(usebranches)
 	local statepath = vim.fn.stdpath("state")
 	if type(statepath) == "table" then
 		statepath = statepath[1]
@@ -185,7 +185,7 @@ function M.setup(usebranches)
 end
 
 ---@param tbl PhysicalStack[]
-function M.save(tbl)
+M.save = function(tbl)
 	if vim.fn.isdirectory(state_dir) == 0 then
 		vim.fn.mkdir(state_dir, "p")
 	end
@@ -193,7 +193,7 @@ function M.save(tbl)
 end
 
 ---@return PhysicalStack[] | nil
-function M.load()
+M.load = function()
 	local tbl = loadtbl(path)
 	if tbl == nil then
 		return nil
