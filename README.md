@@ -114,8 +114,8 @@ Here's the default mapping object for reference:
 	enable_status_col_display = false,
 	-- The character rendered before the currently selected bookmark in the UI
 	cursor_character = '>',
-    -- Set whether or not to persist bookmarks per git branch
-    persist_by_git_branch = false,
+	-- Set whether or not to persist bookmarks per git branch
+	persist_by_git_branch = false,
 }
 ```
 
