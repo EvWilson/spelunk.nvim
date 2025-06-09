@@ -1,3 +1,17 @@
+---@class BaseDimensions
+---@field width integer
+---@field height integer
+
+---@class WindowCoords
+---@field base BaseDimensions
+---@field line integer
+---@field col integer
+
+---@class LayoutProvider
+---@field bookmark_dimensions nil | fun(): WindowCoords
+---@field preview_dimensions nil | fun(): WindowCoords
+---@field help_dimensions nil | fun(): WindowCoords
+
 local M = {}
 
 ---@type 'vertical' | 'horizontal' | LayoutProvider

@@ -4,7 +4,7 @@ local M = {}
 ---@return string
 M.get_treesitter_context = function(mark)
 	local ok, parser = pcall(vim.treesitter.get_parser, mark.bufnr)
-	if not ok then
+	if not ok or not parser then
 		return ""
 	end
 	local tree = parser:parse()[1]

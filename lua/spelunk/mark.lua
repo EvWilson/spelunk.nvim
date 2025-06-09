@@ -5,7 +5,7 @@ local ns_id = vim.api.nvim_create_namespace("spelunk")
 
 local show_status_col
 
----@param extmark vim.api.keyset.get_extmark_item
+---@param extmark vim.api.keyset.get_extmark_item_by_id
 ---@return boolean
 local extmark_ok = function(extmark)
 	return extmark[1] ~= nil and extmark[2] ~= nil
@@ -43,7 +43,7 @@ end
 ---@return PhysicalBookmark
 M.virt_to_physical = function(virt)
 	---@param vmark VirtualBookmark
-	---@return boolean, vim.api.keyset.get_extmark_item
+	---@return boolean, vim.api.keyset.get_extmark_item_by_id
 	local get_mark = function(vmark)
 		return pcall(vim.api.nvim_buf_get_extmark_by_id, vmark.bufnr, ns_id, vmark.mark_id, {})
 	end

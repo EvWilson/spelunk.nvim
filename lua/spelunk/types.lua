@@ -1,4 +1,4 @@
----@alias MarkMeta table<string, any>
+-- Mark management types
 
 ---@class PhysicalBookmark
 ---@field file string
@@ -37,31 +37,3 @@
 ---@class VirtualStack
 ---@field name string
 ---@field bookmarks VirtualBookmark[]
-
----@class CreateWinOpts
----@field title string
----@field line integer
----@field col integer
----@field minwidth integer
----@field minheight integer
-
----@class UpdateWinOpts
----@field cursor_index integer
----@field title string
----@field lines string[]
----@field bookmark VirtualBookmark
----@field max_stack_size integer
-
----@class BaseDimensions
----@field width integer
----@field height integer
-
----@class WindowCoords
----@field base BaseDimensions
----@field line integer
----@field col integer
-
----@class LayoutProvider
----@field bookmark_dimensions nil | fun(): WindowCoords
----@field preview_dimensions nil | fun(): WindowCoords
----@field help_dimensions nil | fun(): WindowCoords

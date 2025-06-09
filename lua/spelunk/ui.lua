@@ -1,6 +1,20 @@
 local layout = require("spelunk.layout")
 local popup = require("plenary.popup")
 
+---@class CreateWinOpts
+---@field title string
+---@field line integer
+---@field col integer
+---@field minwidth integer
+---@field minheight integer
+
+---@class UpdateWinOpts
+---@field cursor_index integer
+---@field title string
+---@field lines string[]
+---@field bookmark VirtualBookmark
+---@field max_stack_size integer
+
 local M = {}
 
 ---@type integer

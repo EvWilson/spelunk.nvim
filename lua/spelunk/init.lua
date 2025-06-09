@@ -500,6 +500,11 @@ M.setup = function(c)
 		if not physical_stacks then
 			physical_stacks = default_stacks
 		end
+		local MarkManager = require("spelunk.markmgr")
+		local mgr = MarkManager.new(physical_stacks, {
+			persist_enabled = enable_persist,
+			persist_cb = M.persist,
+		})
 
 		bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
 
