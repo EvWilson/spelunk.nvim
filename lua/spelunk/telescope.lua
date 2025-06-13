@@ -32,14 +32,15 @@ local file_previewer = previewers.new_buffer_previewer({
 			local top = vim.fn.line("w0", self.state.winid)
 			local bot = vim.fn.line("w$", self.state.winid)
 			local center = math.floor(top + (bot - top) / 2)
+			---@diagnostic disable-next-line
 			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", center - 1, 0, -1)
 		end)
 	end,
 })
 
 ---@param prompt string
----@param data VirtualBookmarkWithStack[]
----@param cb fun(file: string, line: integer, col: integer, split: string|nil)
+---@param data FullBookmark[]
+---@param cb fun(file: string, line: integer, col: integer, split: "vertical" | "horizontal" |nil)
 M.search_marks = function(prompt, data, cb)
 	local opts = {}
 
@@ -48,7 +49,7 @@ M.search_marks = function(prompt, data, cb)
 			prompt_title = prompt,
 			finder = finders.new_table({
 				results = data,
-				---@param entry VirtualBookmarkWithStack
+				---@param entry FullBookmark
 				entry_maker = function(entry)
 					local display_str = string.format("%s.%s", entry.stack, require("spelunk").display_function(entry))
 					return {
@@ -73,8 +74,8 @@ M.search_marks = function(prompt, data, cb)
 end
 
 ---@param prompt string
----@param data VirtualStack[]
----@param cb fun(data: VirtualStack)
+---@param data string[]
+---@param cb fun(data: string)
 M.search_stacks = function(prompt, data, cb)
 	local opts = {}
 
@@ -84,7 +85,7 @@ M.search_stacks = function(prompt, data, cb)
 			finder = finders.new_table({
 				results = data,
 				entry_maker = function(entry)
-					local display_str = entry.name
+					local display_str = entry
 					return {
 						value = entry,
 						display = display_str,

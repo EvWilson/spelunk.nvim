@@ -12,7 +12,7 @@ local popup = require("plenary.popup")
 ---@field cursor_index integer
 ---@field title string
 ---@field lines string[]
----@field bookmark VirtualBookmark
+---@field bookmark PhysicalBookmark | nil
 ---@field max_stack_size integer
 
 local M = {}
@@ -339,29 +339,24 @@ end
 
 ---@param opts UpdateWinOpts
 local update_preview = function(opts)
-	local bookmark
-	if opts.bookmark then
-		bookmark = require("spelunk.mark").virt_to_physical(opts.bookmark)
-	else
-		bookmark = nil
-	end
-	if not window_ready(preview_window_id) or not bookmark then
+	if not window_ready(preview_window_id) or not opts.bookmark then
 		return
 	end
 	local prev_dims = layout.preview_dimensions()
 	local bufnr = vim.api.nvim_win_get_buf(preview_window_id)
 	vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
-	local startline = math.max(1, math.ceil(bookmark.line - (prev_dims.base.height / 2)))
-	local lines = read_lines(bookmark.file, startline, startline + prev_dims.base.height)
+	local startline = math.max(1, math.ceil(opts.bookmark.line - (prev_dims.base.height / 2)))
+	local lines = read_lines(opts.bookmark.file, startline, startline + prev_dims.base.height)
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 
-	local ft = vim.filetype.match({ filename = bookmark.file })
+	local ft = vim.filetype.match({ filename = opts.bookmark.file })
 	if ft then
 		vim.bo[bufnr].filetype = ft
 	end
 
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
+	---@diagnostic disable-next-line
 	vim.api.nvim_buf_add_highlight(bufnr, -1, "Search", bookmark.line - startline, 0, -1)
 end
 

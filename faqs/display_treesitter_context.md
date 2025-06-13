@@ -5,7 +5,7 @@ As mentioned in the README API section, a display function is exposed to allow y
 The default display function is as follows:
 ```lua
 local spelunk = require('spelunk')
----@param mark VirtualBookmark | PhysicalBookmark | FullBookmark
+---@param mark PhysicalBookmark | FullBookmark
 ---@return string
 spelunk.display_function = function(mark)
 	return string.format('%s:%d', spelunk.filename_formatter(mark.file), mark.line)
