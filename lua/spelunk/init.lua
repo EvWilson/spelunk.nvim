@@ -78,15 +78,15 @@ local goto_position = function(file, line, col, split)
 	end
 	if not split then
 		vim.api.nvim_command("edit " .. file)
-		vim.api.nvim_win_set_cursor(0, { line, col })
+		vim.api.nvim_win_set_cursor(0, { line, col - 1 })
 	elseif split == "vertical" then
 		vim.api.nvim_command("vsplit " .. file)
 		local new_win = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_set_cursor(new_win, { line, col })
+		vim.api.nvim_win_set_cursor(new_win, { line, col - 1 })
 	elseif split == "horizontal" then
 		vim.api.nvim_command("split " .. file)
 		local new_win = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_set_cursor(new_win, { line, col })
+		vim.api.nvim_win_set_cursor(new_win, { line, col - 1 })
 	else
 		vim.notify("[spelunk.nvim] goto_position passed unsupported split: " .. split)
 	end

@@ -106,7 +106,6 @@ local new_buf_cb = function()
 	vim.api.nvim_create_autocmd("BufNew", {
 		callback = function(ctx)
 			if file_set[ctx.file] then
-				-- print("Matched new buf:", ctx.file)
 				for istack, stack in ipairs(stacks) do
 					for imark, mark in ipairs(stack.marks) do
 						if mark.file == ctx.file then
@@ -115,7 +114,6 @@ local new_buf_cb = function()
 					end
 				end
 			end
-			-- print("new mgr:", vim.inspect(mgr))
 		end,
 		desc = "[spelunk.nvim] Reapply bookmark extmarks to newly opened buffers",
 	})
@@ -186,7 +184,7 @@ end
 ---@param stack_idx integer
 ---@return integer
 M.len_marks = function(stack_idx)
-	return #stacks[stack_idx]
+	return #stacks[stack_idx].marks
 end
 
 ---@return integer
