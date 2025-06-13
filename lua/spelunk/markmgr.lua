@@ -88,34 +88,38 @@ end
 
 ---@param stack_idx integer
 M.update_indices = function(stack_idx)
-	for idx, mark in ipairs(stacks[stack_idx]) do
+	for mark_idx, mark in ipairs(stacks[stack_idx]) do
 		-- Watch this option set for drift with the main setter
 		-- Need this to add the edit ID
 		local opts = {
 			id = mark.extmark_id,
 			strict = false,
 			right_gravity = true,
-			sign_text = tostring(idx),
+			sign_text = tostring(mark_idx),
 		}
-		vim.api.nvim_buf_set_extmark(mark.bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
+		-- Discard in this instance, extmark_id and bufnr should remain unchanged
+		local _ = vim.api.nvim_buf_set_extmark(mark.bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
 	end
 end
 
 --- Register autocmd to reapply extmarks when a relevant buffer is opened for the first time
 local new_buf_cb = function()
-	vim.api.nvim_create_autocmd("BufNew", {
+	vim.api.nvim_create_autocmd("BufWinEnter", {
+		pattern = "*",
 		callback = function(ctx)
-			if file_set[ctx.file] then
-				for istack, stack in ipairs(stacks) do
-					for imark, mark in ipairs(stack.marks) do
-						if mark.file == ctx.file then
-							stacks[istack].marks[imark] = set_extmark(mark, ctx.buf, imark)
-						end
+			if vim.b.spelunk_entry or not file_set[ctx.file] then
+				return
+			end
+			vim.b.spelunk_entry = true
+			for stack_idx, stack in ipairs(stacks) do
+				for mark_idx, mark in ipairs(stack.marks) do
+					if mark.file == ctx.file then
+						stacks[stack_idx].marks[mark_idx] = set_extmark(mark, ctx.buf, mark_idx)
 					end
 				end
 			end
 		end,
-		desc = "[spelunk.nvim] Reapply bookmark extmarks to newly opened buffers",
+		desc = "[spelunk.nvim] Reapply bookmark extmarks to opened buffers",
 	})
 end
 
@@ -329,10 +333,13 @@ end
 ---@param mark_idx integer
 ---@return integer
 M.delete_mark = function(stack_idx, mark_idx)
+	---@type Mark
 	local delmark = table.remove(stacks[stack_idx].marks, mark_idx)
-	local success = vim.api.nvim_buf_del_extmark(delmark.bufnr, ns_id, delmark.mark_id)
-	if not success then
-		vim.notify(string.format("[spelunk.nvim] Error occurred deleting mark at index %d:%d", stack_idx, mark_idx))
+	if delmark.extmark_id then
+		local success = vim.api.nvim_buf_del_extmark(delmark.bufnr, ns_id, delmark.extmark_id)
+		if not success then
+			vim.notify(string.format("[spelunk.nvim] Error occurred deleting mark at index %d:%d", stack_idx, mark_idx))
+		end
 	end
 	local len = M.len_marks(stack_idx)
 	if mark_idx > len and len ~= 0 then
@@ -347,9 +354,12 @@ M.delete_stack = function(stack_idx)
 		vim.notify("[spelunk.nvim] Cannot delete a stack when you have less than two")
 		return
 	end
-	local stack = table.remove(stacks[stack_idx])
+	local stack = table.remove(stacks, stack_idx)
 	for mark_idx, delmark in ipairs(stack.marks) do
-		local success = vim.api.nvim_buf_del_extmark(delmark.bufnr, ns_id, delmark.mark_id)
+		if not delmark.extmark_id then
+			goto continue
+		end
+		local success = vim.api.nvim_buf_del_extmark(delmark.bufnr, ns_id, delmark.extmark_id)
 		if not success then
 			vim.notify(
 				string.format(
@@ -359,6 +369,7 @@ M.delete_stack = function(stack_idx)
 				)
 			)
 		end
+		::continue::
 	end
 end
 
