@@ -134,7 +134,9 @@ M.move_bookmark = function(direction)
 		vim.notify("[spelunk.nvim] move_bookmark passed invalid direction")
 		return
 	end
-	markmgr.move_mark_in_stack(current_stack_index, cursor_index, direction)
+	if not markmgr.move_mark_in_stack(current_stack_index, cursor_index, direction) then
+		return
+	end
 	M.move_cursor(direction)
 	M.persist()
 end

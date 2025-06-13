@@ -260,23 +260,26 @@ M.instances_of_file = function(filename)
 	return count
 end
 
+--- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
 ---@param stack_idx integer
 ---@param mark_idx integer
 ---@param mark_delta 1 | -1
+---@return boolean
 M.move_mark_in_stack = function(stack_idx, mark_idx, mark_delta)
 	-- No need to move if there's at most one mark
 	if #stacks[stack_idx].marks < 2 then
-		return
+		return false
 	end
 	-- Don't perform the move if moving to an invalid location
 	local newidx = mark_idx + mark_delta
 	if newidx < 1 or newidx > #stacks[stack_idx].marks then
-		return
+		return false
 	end
 	local currmark = stacks[stack_idx].marks[mark_idx]
 	local newmark = stacks[stack_idx].marks[newidx]
 	stacks[stack_idx].marks[mark_idx] = newmark
 	stacks[stack_idx].marks[newidx] = currmark
+	return true
 end
 
 ---@param stack_idx integer
