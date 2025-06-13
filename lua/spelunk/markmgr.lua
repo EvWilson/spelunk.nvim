@@ -44,6 +44,7 @@ local util = require("spelunk.util")
 ---@type MarkStack[]
 local stacks
 
+--- Specifically here to help determine whether to bootstrap extmarks on initial buf enter
 ---@type StringSet
 local file_set
 
@@ -63,7 +64,6 @@ local new_mark = function()
 		line = vim.fn.line("."),
 		col = vim.fn.col("."),
 		meta = {},
-		extmark_id = nil,
 	}
 end
 
