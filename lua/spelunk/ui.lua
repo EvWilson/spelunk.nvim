@@ -357,7 +357,7 @@ local update_preview = function(opts)
 
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
 	---@diagnostic disable-next-line
-	vim.api.nvim_buf_add_highlight(bufnr, -1, "Search", bookmark.line - startline, 0, -1)
+	vim.api.nvim_buf_add_highlight(bufnr, -1, "Search", opts.bookmark.line - startline, 0, -1)
 end
 
 ---@param opts UpdateWinOpts
