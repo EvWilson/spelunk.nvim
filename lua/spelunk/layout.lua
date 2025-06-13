@@ -1,3 +1,17 @@
+---@class BaseDimensions
+---@field width integer
+---@field height integer
+
+---@class WindowCoords
+---@field base BaseDimensions
+---@field line integer
+---@field col integer
+
+---@class LayoutProvider
+---@field bookmark_dimensions nil | fun(): WindowCoords
+---@field preview_dimensions nil | fun(): WindowCoords
+---@field help_dimensions nil | fun(): WindowCoords
+
 local M = {}
 
 ---@type 'vertical' | 'horizontal' | LayoutProvider
@@ -102,7 +116,7 @@ M.has_help_dimensions = function()
 	return M.help_dimensions ~= nil
 end
 
----@param o 'vertical' | 'horizontal' | LayoutProvider
+---@param o "vertical" | "horizontal" | LayoutProvider
 M.setup = function(o)
 	if o ~= "vertical" and o ~= "horizontal" and type(o) ~= "table" then
 		error("[spelunk.nvim] Layout engine passed an unsupported orientation: " .. vim.inspect(o))

@@ -1,47 +1,29 @@
 local ui = require("spelunk.ui")
 local persist = require("spelunk.persistence")
-local marks = require("spelunk.mark")
+---@diagnostic disable-next-line
 local tele = require("spelunk.telescope")
-local util = require("spelunk.util")
+local markmgr = require("spelunk.markmgr")
 
 local M = {}
 
----@type VirtualStack[]
+---@type PhysicalStack[]
 local default_stacks = {
 	{ name = "Default", bookmarks = {} },
 }
----@type VirtualStack[]
-local bookmark_stacks
 ---@type integer
 local current_stack_index = 1
 ---@type integer
 local cursor_index = 1
 
+---@type any
 local window_config
 
 ---@type boolean
 local enable_persist
-
 ---@type string
 local statusline_prefix
-
 ---@type boolean
 local show_status_col
-
----@return VirtualStack[]
-local get_stacks = function()
-	return bookmark_stacks
-end
-
----@return VirtualStack
-local current_stack = function()
-	return bookmark_stacks[current_stack_index]
-end
-
----@return VirtualBookmark
-local current_bookmark = function()
-	return bookmark_stacks[current_stack_index].bookmarks[cursor_index]
-end
 
 ---@param abspath string
 ---@return string
@@ -49,50 +31,46 @@ M.filename_formatter = function(abspath)
 	return vim.fn.fnamemodify(abspath, ":~:.")
 end
 
----@param mark VirtualBookmark | PhysicalBookmark | FullBookmark
+---@param mark PhysicalBookmark | FullBookmark
 ---@return string
 M.display_function = function(mark)
 	return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
 end
 
----@return integer
-local max_stack_size = function()
-	local max = 0
-	for _, stack in ipairs(bookmark_stacks) do
-		local size = #stack.bookmarks
-		if size > max then
-			max = size
-		end
-	end
-	return max
-end
-
 ---@return UpdateWinOpts
 local get_win_update_opts = function()
+	---@type string[]
 	local lines = {}
-	for _, vmark in ipairs(current_stack().bookmarks) do
-		table.insert(lines, M.display_function(vmark))
+	for _, mark in ipairs(markmgr.physical_stack(current_stack_index).bookmarks) do
+		table.insert(lines, M.display_function(mark))
+	end
+	---@type PhysicalBookmark | nil
+	local mark
+	if markmgr.valid_indices(current_stack_index, cursor_index) then
+		mark = markmgr.physical_mark(current_stack_index, cursor_index)
+	else
+		mark = nil
 	end
 	return {
 		cursor_index = cursor_index,
-		title = current_stack().name,
+		title = markmgr.get_stack_name(current_stack_index),
 		lines = lines,
-		bookmark = current_bookmark(),
-		max_stack_size = max_stack_size(),
+		bookmark = mark,
+		max_stack_size = markmgr.max_stack_len(),
 	}
 end
 
 ---@param updated_indices boolean
 local update_window = function(updated_indices)
 	if updated_indices and show_status_col then
-		marks.update_indices(current_stack())
+		markmgr.update_indices(current_stack_index)
 	end
 	ui.update_window(get_win_update_opts())
 end
 
 ---@param file string
 ---@param line integer
----@param split string | nil
+---@param split "vertical" | "horizontal" | nil
 local goto_position = function(file, line, col, split)
 	if vim.fn.filereadable(file) ~= 1 then
 		vim.notify("[spelunk.nvim] file being navigated to does not seem to exist: " .. file)
@@ -100,15 +78,15 @@ local goto_position = function(file, line, col, split)
 	end
 	if not split then
 		vim.api.nvim_command("edit " .. file)
-		vim.api.nvim_win_set_cursor(0, { line, col })
+		vim.api.nvim_win_set_cursor(0, { line, col - 1 })
 	elseif split == "vertical" then
 		vim.api.nvim_command("vsplit " .. file)
 		local new_win = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_set_cursor(new_win, { line, col })
+		vim.api.nvim_win_set_cursor(new_win, { line, col - 1 })
 	elseif split == "horizontal" then
 		vim.api.nvim_command("split " .. file)
 		local new_win = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_set_cursor(new_win, { line, col })
+		vim.api.nvim_win_set_cursor(new_win, { line, col - 1 })
 	else
 		vim.notify("[spelunk.nvim] goto_position passed unsupported split: " .. split)
 	end
@@ -135,30 +113,18 @@ M.add_bookmark = function()
 		vim.notify("[spelunk.nvim] Cannot create bookmark while UI is open")
 		return
 	end
-	local currstack = current_stack()
-	table.insert(currstack.bookmarks, marks.set_mark_current_pos(#currstack.bookmarks + 1))
-	vim.notify(
-		string.format(
-			"[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
-			currstack.name,
-			vim.fn.expand("%:p"),
-			vim.fn.line("."),
-			vim.fn.col(".")
-		)
-	)
+	markmgr.add_mark_current_pos(current_stack_index)
 	update_window(true)
 	M.persist()
 end
 
 ---@param direction 1 | -1
 M.move_cursor = function(direction)
-	local bookmarks = current_stack().bookmarks
-	cursor_index = cursor_index + direction
-	if cursor_index < 1 then
-		cursor_index = math.max(#bookmarks, 1)
-	elseif cursor_index > #bookmarks then
-		cursor_index = 1
+	if direction ~= 1 and direction ~= -1 then
+		vim.notify("[spelunk.nvim] move_cursor passed invalid direction")
+		return
 	end
+	cursor_index = markmgr.move_mark_idx(current_stack_index, cursor_index, direction)
 	update_window(true)
 end
 
@@ -168,32 +134,22 @@ M.move_bookmark = function(direction)
 		vim.notify("[spelunk.nvim] move_bookmark passed invalid direction")
 		return
 	end
-	local curr_stack = current_stack()
-	if #current_stack().bookmarks < 2 then
+	if not markmgr.move_mark_in_stack(current_stack_index, cursor_index, direction) then
 		return
 	end
-	local new_idx = cursor_index + direction
-	if new_idx < 1 or new_idx > #curr_stack.bookmarks then
-		return
-	end
-	local curr_mark = current_bookmark()
-	local tmp_new = bookmark_stacks[current_stack_index].bookmarks[new_idx]
-	bookmark_stacks[current_stack_index].bookmarks[cursor_index] = tmp_new
-	bookmark_stacks[current_stack_index].bookmarks[new_idx] = curr_mark
 	M.move_cursor(direction)
 	M.persist()
 end
 
 ---@param close boolean
----@param split string | nil
+---@param split "vertical" | "horizontal" | nil
 local goto_bookmark = function(close, split)
-	local bookmarks = current_stack().bookmarks
-	local mark = marks.virt_to_physical(current_bookmark())
-	if cursor_index > 0 and cursor_index <= #bookmarks then
+	if cursor_index > 0 and cursor_index <= markmgr.len_marks(current_stack_index) then
 		if close then
 			M.close_windows()
 		end
 		vim.schedule(function()
+			local mark = markmgr.physical_mark(current_stack_index, cursor_index)
 			goto_position(mark.file, mark.line, mark.col, split)
 		end)
 	end
@@ -201,7 +157,7 @@ end
 
 ---@param idx integer
 M.goto_bookmark_at_index = function(idx)
-	if idx < 1 or idx > #current_stack().bookmarks then
+	if idx < 1 or idx > markmgr.len_marks(current_stack_index) then
 		vim.notify("[spelunk.nvim] Given invalid index: " .. idx)
 		return
 	end
@@ -222,15 +178,7 @@ M.goto_selected_bookmark_vertical_split = function()
 end
 
 M.delete_selected_bookmark = function()
-	local bookmarks = current_stack().bookmarks
-	if not bookmarks[cursor_index] then
-		return
-	end
-	marks.delete_mark(bookmarks[cursor_index])
-	table.remove(bookmarks, cursor_index)
-	if cursor_index > #bookmarks and #bookmarks ~= 0 then
-		cursor_index = #bookmarks
-	end
+	cursor_index = markmgr.delete_mark(current_stack_index, cursor_index)
 	update_window(true)
 	M.persist()
 end
@@ -240,7 +188,7 @@ M.select_and_goto_bookmark = function(direction)
 	if ui.is_open() then
 		return
 	end
-	if #current_stack().bookmarks == 0 then
+	if markmgr.len_marks(current_stack_index) == 0 then
 		vim.notify("[spelunk.nvim] No bookmarks to go to")
 		return
 	end
@@ -249,42 +197,31 @@ M.select_and_goto_bookmark = function(direction)
 end
 
 M.delete_current_stack = function()
-	if #bookmark_stacks < 2 then
-		vim.notify("[spelunk.nvim] Cannot delete a stack when you have less than two")
-		return
-	end
-	if not current_stack() then
-		return
-	end
-	marks.delete_stack(current_stack())
-	table.remove(bookmark_stacks, current_stack_index)
+	markmgr.delete_stack(current_stack_index)
 	current_stack_index = 1
 	update_window(false)
 	M.persist()
 end
 
 M.edit_current_stack = function()
-	local stack = current_stack()
-	if not stack then
-		return
-	end
-	local name = vim.fn.input("[spelunk.nvim] Enter new name for the stack: ", stack.name)
+	local name =
+		vim.fn.input("[spelunk.nvim] Enter new name for the stack: ", markmgr.get_stack_name(current_stack_index))
 	if name == "" then
 		return
 	end
-	current_stack().name = name
+	markmgr.set_stack_name(current_stack_index, name)
 	update_window(false)
 	M.persist()
 end
 
 M.next_stack = function()
-	current_stack_index = current_stack_index % #bookmark_stacks + 1
+	current_stack_index = current_stack_index % markmgr.len_stacks() + 1
 	cursor_index = 1
 	update_window(false)
 end
 
 M.prev_stack = function()
-	current_stack_index = (current_stack_index - 2) % #bookmark_stacks + 1
+	current_stack_index = (current_stack_index - 2) % markmgr.len_stacks() + 1
 	cursor_index = 1
 	update_window(false)
 end
@@ -292,8 +229,8 @@ end
 M.new_stack = function()
 	local name = vim.fn.input("[spelunk.nvim] Enter name for new stack: ")
 	if name and name ~= "" then
-		table.insert(bookmark_stacks, { name = name, bookmarks = {} })
-		current_stack_index = #bookmark_stacks
+		local new_stack_idx = markmgr.add_stack(name)
+		current_stack_index = new_stack_idx
 		cursor_index = 1
 		update_window(false)
 	end
@@ -302,16 +239,15 @@ end
 
 M.persist = function()
 	if enable_persist then
-		persist.save(marks.virt_to_physical_stack(bookmark_stacks))
+		persist.save(markmgr.physical_stacks())
 	end
 end
 
 ---@return FullBookmark[]
 M.all_full_marks = function()
 	local data = {}
-	for _, stack in ipairs(bookmark_stacks) do
-		for _, vmark in ipairs(stack.bookmarks) do
-			local mark = marks.virt_to_physical(vmark)
+	for _, stack in ipairs(markmgr.physical_stacks()) do
+		for _, mark in ipairs(stack.bookmarks) do
 			table.insert(data, {
 				stack = stack.name,
 				file = mark.file,
@@ -333,23 +269,14 @@ M.search_marks = function()
 		vim.notify("[spelunk.nvim] Cannot search with UI open")
 		return
 	end
-	local data = {}
-	for _, stack in ipairs(bookmark_stacks) do
-		for _, vmark in ipairs(stack.bookmarks) do
-			local copy = util.copy_tbl(vmark)
-			copy.stack = stack.name
-			table.insert(data, copy)
-		end
-	end
-	tele.search_marks("[spelunk.nvim] Bookmarks", data, goto_position)
+	tele.search_marks("[spelunk.nvim] Bookmarks", M.all_full_marks(), goto_position)
 end
 
 ---@return FullBookmark[]
 M.current_full_marks = function()
 	local data = {}
-	local stack = current_stack()
-	for _, vmark in ipairs(stack.bookmarks) do
-		local mark = marks.virt_to_physical(vmark)
+	local stack = markmgr.physical_stack(current_stack_index)
+	for _, mark in ipairs(stack.bookmarks) do
 		table.insert(data, {
 			stack = stack.name,
 			file = mark.file,
@@ -370,14 +297,7 @@ M.search_current_marks = function()
 		vim.notify("[spelunk.nvim] Cannot search with UI open")
 		return
 	end
-	local data = {}
-	local stack = current_stack()
-	for _, vmark in ipairs(stack.bookmarks) do
-		local copy = util.copy_tbl(vmark)
-		copy.stack = stack.name
-		table.insert(data, copy)
-	end
-	tele.search_marks("[spelunk.nvim] Current Stack", data, goto_position)
+	tele.search_marks("[spelunk.nvim] Current Stack", M.current_full_marks(), goto_position)
 end
 
 M.search_stacks = function()
@@ -389,45 +309,30 @@ M.search_stacks = function()
 		vim.notify("[spelunk.nvim] Cannot search with UI open")
 		return
 	end
-	---@param stack PhysicalStack
-	local cb = function(stack)
-		local stack_idx
-		for i, s in ipairs(bookmark_stacks) do
-			if s.name == stack.name then
-				stack_idx = i
-			end
-		end
-		if not stack_idx then
+	---@param stack_name string
+	local cb = function(stack_name)
+		local stack_idx = markmgr.stack_idx_for_name(stack_name)
+		if stack_idx < 0 then
 			return
 		end
 		current_stack_index = stack_idx
 		M.toggle_window()
 	end
-	tele.search_stacks("[spelunk.nvim] Stacks", bookmark_stacks, cb)
+	tele.search_stacks("[spelunk.nvim] Stacks", markmgr.stack_names(), cb)
 end
 
 ---@return string
 M.statusline = function()
-	local count = 0
 	local path = vim.fn.expand("%:p")
-	for _, stack in ipairs(bookmark_stacks) do
-		for _, vmark in ipairs(stack.bookmarks) do
-			local mark = marks.virt_to_physical(vmark)
-			if mark.file == path then
-				count = count + 1
-			end
-		end
-	end
-	return statusline_prefix .. " " .. count
+	return statusline_prefix .. " " .. markmgr.instances_of_file(path)
 end
 
----@param vmarks VirtualBookmark[]
-local open_marks_qf = function(vmarks)
+---@param marks PhysicalBookmark[]
+local open_marks_qf = function(marks)
 	local qf_items = {}
-	for _, vmark in ipairs(vmarks) do
-		local mark = marks.virt_to_physical(vmark)
+	for _, mark in ipairs(marks) do
 		table.insert(qf_items, {
-			bufnr = vmark.bufnr,
+			bufnr = vim.fn.bufnr(mark.file),
 			lnum = mark.line,
 			col = mark.col,
 			text = vim.fn.getline(mark.line),
@@ -439,33 +344,39 @@ local open_marks_qf = function(vmarks)
 end
 
 M.qf_all_marks = function()
-	local vmarks = {}
-	for _, vstack in ipairs(bookmark_stacks) do
-		for _, vmark in ipairs(vstack.bookmarks) do
-			table.insert(vmarks, vmark)
+	---@type PhysicalBookmark[]
+	local marks = {}
+	for _, stack in ipairs(markmgr.physical_stacks()) do
+		for _, mark in ipairs(stack.bookmarks) do
+			table.insert(marks, mark)
 		end
 	end
-	open_marks_qf(vmarks)
+	open_marks_qf(marks)
 end
 
 M.qf_current_marks = function()
-	local vmarks = {}
-	for _, vmark in ipairs(current_stack().bookmarks) do
-		table.insert(vmarks, vmark)
+	---@type PhysicalBookmark[]
+	local marks = {}
+	for _, mark in ipairs(markmgr.physical_stack(current_stack_index)) do
+		table.insert(marks, mark)
 	end
-	open_marks_qf(vmarks)
+	open_marks_qf(marks)
 end
 
+---@param stack_idx integer
+---@param mark_idx integer
 ---@param field string
 ---@param val any
-M.add_mark_meta = function(field, val)
-	current_bookmark().meta[field] = val
+M.add_mark_meta = function(stack_idx, mark_idx, field, val)
+	markmgr.add_mark_meta(stack_idx, mark_idx, field, val)
 end
 
----@param mark VirtualBookmark | PhysicalBookmark
+---@param stack_idx integer
+---@param mark_idx integer
+---@param field string
 ---@return any | nil
-M.get_mark_meta = function(mark, field)
-	return mark.meta[field]
+M.get_mark_meta = function(stack_idx, mark_idx, field)
+	return markmgr.get_mark_meta(stack_idx, mark_idx, field)
 end
 
 M.setup = function(c)
@@ -483,57 +394,52 @@ M.setup = function(c)
 
 	persist.setup(conf.persist_by_git_branch or cfg.get_default("persist_by_git_branch"))
 
-	-- This does a whole lot of work on setup, and can potentially delay the loading of other plugins
-	-- In the worst case, this has blocked the loading of LSP servers, possibly by timeout
-	-- Adding something like a `lazy.nvim` `VeryLazy` event spec doesn't work in all cases,
-	-- e.g. when the Lualine integration is enabled, it forces it to load up anyway
-	-- This seems to delay things just long enough to get it to play nicely with others
-	vim.schedule(function()
-		-- Load saved bookmarks, if enabled and available
-		-- Otherwise, set defaults
-		---@type PhysicalStack[] | nil
-		local physical_stacks
-		enable_persist = conf.enable_persist or cfg.get_default("enable_persist")
-		if enable_persist then
-			physical_stacks = persist.load()
-		end
-		if not physical_stacks then
-			physical_stacks = default_stacks
-		end
+	-- Load saved bookmarks, if enabled and available
+	-- Otherwise, set defaults
+	---@type PhysicalStack[] | nil
+	local physical_stacks
+	enable_persist = conf.enable_persist or cfg.get_default("enable_persist")
+	if enable_persist then
+		physical_stacks = persist.load()
+	end
+	if not physical_stacks then
+		physical_stacks = default_stacks
+	end
+	markmgr.init(physical_stacks, {
+		persist_enabled = enable_persist,
+		persist_cb = M.persist,
+	}, show_status_col)
 
-		bookmark_stacks = marks.setup(physical_stacks, show_status_col, enable_persist, M.persist, get_stacks)
+	-- Configure the prefix to use for the lualine integration
+	statusline_prefix = conf.statusline_prefix or cfg.get_default("statusline_prefix")
 
-		-- Configure the prefix to use for the lualine integration
-		statusline_prefix = conf.statusline_prefix or cfg.get_default("statusline_prefix")
+	local set = cfg.set_keymap
+	set(base_config.toggle, M.toggle_window, "[spelunk.nvim] Toggle UI")
+	set(base_config.add, M.add_bookmark, "[spelunk.nvim] Add bookmark")
+	set(
+		base_config.next_bookmark,
+		':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
+		"[spelunk.nvim] Go to next bookmark"
+	)
+	set(
+		base_config.prev_bookmark,
+		':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
+		"[spelunk.nvim] Go to previous bookmark"
+	)
 
-		local set = cfg.set_keymap
-		set(base_config.toggle, M.toggle_window, "[spelunk.nvim] Toggle UI")
-		set(base_config.add, M.add_bookmark, "[spelunk.nvim] Add bookmark")
-		set(
-			base_config.next_bookmark,
-			':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
-			"[spelunk.nvim] Go to next bookmark"
-		)
-		set(
-			base_config.prev_bookmark,
-			':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
-			"[spelunk.nvim] Go to previous bookmark"
-		)
-
-		-- Register telescope extension, only if telescope itself is loaded already
-		local telescope_loaded, telescope = pcall(require, "telescope")
-		if not telescope_loaded or not telescope then
-			return
-		end
-		telescope.load_extension("spelunk")
-		set(base_config.search_bookmarks, telescope.extensions.spelunk.marks, "[spelunk.nvim] Fuzzy find bookmarks")
-		set(
-			base_config.search_current_bookmarks,
-			telescope.extensions.spelunk.current_marks,
-			"[spelunk.nvim] Fuzzy find bookmarks in current stack"
-		)
-		set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
-	end)
+	-- Register telescope extension, only if telescope itself is loaded already
+	local telescope_loaded, telescope = pcall(require, "telescope")
+	if not telescope_loaded or not telescope then
+		return
+	end
+	telescope.load_extension("spelunk")
+	set(base_config.search_bookmarks, telescope.extensions.spelunk.marks, "[spelunk.nvim] Fuzzy find bookmarks")
+	set(
+		base_config.search_current_bookmarks,
+		telescope.extensions.spelunk.current_marks,
+		"[spelunk.nvim] Fuzzy find bookmarks in current stack"
+	)
+	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
 end
 
 return M

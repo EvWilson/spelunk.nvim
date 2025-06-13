@@ -166,7 +166,7 @@ If there is functionality you'd like to see added or exposed, please feel free t
 
 - `display_function`
 	- Description: function determining how to format the full displayed string
-	- Type: `fun(mark: VirtualBookmark | PhysicalBookmark | FullBookmark): string`
+	- Type: `fun(mark: PhysicalBookmark | FullBookmark): string`
 	- Default value:
 	```lua
 	M.display_function = function(mark)
@@ -265,13 +265,17 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `add_mark_meta`
 	- Description: add a value to a string key in the current mark's metadata table, can be used to create aliases or otherwise (see `faqs/`)
 	- Parameters:
+		- `stack_idx: integer`: index of the intended stack
+		- `mark_idx: integer`: index of the intended mark
 		- `field: string`: field in the metadata object to assign to
 		- `val: any`: value to assign to the field
 
 - `get_mark_meta`
 	- Description: retrieve a value from a mark's metadata table
 	- Parameters:
-		- `mark: VirtualBookmark | PhysicalBookmark`: the mark to pull the value from
+		- `stack_idx: integer`: index of the intended stack
+		- `mark_idx: integer`: index of the intended mark
+		- `field: string`: field in the metadata object to pull the value of
 	- Returns:
 		- `any | nil`
 
@@ -279,7 +283,7 @@ If there is functionality you'd like to see added or exposed, please feel free t
 	- Description: specially-scoped function to get the context of the given mark, in terms of chained Treesitter contexts
 	- Disclaimer: this function is best-effort and incubatory, please open an issue if it's misbehaving and see the guide in `faqs/` for usage
 	- Parameters:
-		- `mark: VirtualBookmark`
+		- `mark: PhysicalBookmark`
 	- Returns:
 		- `string`
 

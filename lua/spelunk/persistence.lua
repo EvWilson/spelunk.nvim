@@ -1,8 +1,8 @@
 local M = {}
 
---@type string
+---@type string
 local state_dir
---@type string
+---@type string
 local path
 
 ---@return string
@@ -110,7 +110,7 @@ local loadtbl = function(sfile)
 	return tables[1]
 end
 
---@param name string
+---@param name string
 local sanitize_git_branch = function(name)
 	if not name or name == "" then
 		return ""
@@ -150,7 +150,7 @@ local sanitize_git_branch = function(name)
 	return sanitized
 end
 
---@return string | nil
+---@return string | nil
 local get_git_branch = function()
 	local ok, result = pcall(function()
 		return vim.system({ "git", "branch", "--show-current" }, { cwd = vim.fn.getcwd() }):wait()
@@ -166,7 +166,7 @@ local get_git_branch = function()
 	return nil
 end
 
---@param usebranches boolean
+---@param usebranches boolean
 M.setup = function(usebranches)
 	local statepath = vim.fn.stdpath("state")
 	if type(statepath) == "table" then
@@ -176,7 +176,7 @@ M.setup = function(usebranches)
 	local cwd_str = vim.fn.getcwd():gsub('[/\\:*?"<>|]', "_")
 	local branch = ""
 	if usebranches then
-		local maybe_branch = sanitize_git_branch(get_git_branch())
+		local maybe_branch = sanitize_git_branch(get_git_branch() or "")
 		if maybe_branch then
 			branch = maybe_branch
 		end

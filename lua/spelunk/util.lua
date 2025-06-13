@@ -1,10 +1,11 @@
 local M = {}
 
----@param mark VirtualBookmark
+---@param mark PhysicalBookmark
 ---@return string
 M.get_treesitter_context = function(mark)
-	local ok, parser = pcall(vim.treesitter.get_parser, mark.bufnr)
-	if not ok then
+	local bufnr = vim.fn.bufnr(mark.file)
+	local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+	if not ok or not parser then
 		return ""
 	end
 	local tree = parser:parse()[1]
@@ -33,7 +34,7 @@ M.get_treesitter_context = function(mark)
 				return nil
 			end
 			local start_row, start_col, end_row, end_col = n:range()
-			return vim.api.nvim_buf_get_text(mark.bufnr, start_row, start_col, end_row, end_col, {})[1]
+			return vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, {})[1]
 		end
 		---@type TSNode | nil
 		local identifier
