@@ -1,6 +1,3 @@
-local layout = require("spelunk.layout")
-local popup = require("plenary.popup")
-
 ---@class CreateWinOpts
 ---@field title string
 ---@field line integer
@@ -14,6 +11,9 @@ local popup = require("plenary.popup")
 ---@field lines string[]
 ---@field bookmark PhysicalBookmark | nil
 ---@field max_stack_size integer
+
+local layout = require("spelunk.layout")
+local popup = require("plenary.popup")
 
 local M = {}
 

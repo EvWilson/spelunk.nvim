@@ -3,7 +3,6 @@ local M = {}
 ---@param mark PhysicalBookmark
 ---@return string
 M.get_treesitter_context = function(mark)
-	vim.notify("EAW mark in ts ctx " .. vim.inspect(mark) .. " " .. mark.file)
 	local bufnr = vim.fn.bufnr(mark.file)
 	local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
 	if not ok or not parser then

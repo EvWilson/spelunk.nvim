@@ -1,14 +1,3 @@
-local util = require("spelunk.util")
-
----@type MarkStack[]
-local stacks
-
----@type StringSet
-local file_set
-
----@type boolean
-local show_status_col
-
 -- Main mark types
 
 ---@class MarkStack
@@ -30,6 +19,36 @@ local show_status_col
 ---@field persist_cb fun()
 
 ---@alias StringSet table<string, true>
+
+-- Utility types
+
+---@class PhysicalBookmark
+---@field file string
+---@field line integer
+---@field col integer
+---@field meta MarkMeta
+
+---@class FullBookmark
+---@field stack string
+---@field file string
+---@field line integer
+---@field col integer
+---@field meta MarkMeta
+
+---@class PhysicalStack
+---@field name string
+---@field bookmarks PhysicalBookmark[]
+
+local util = require("spelunk.util")
+
+---@type MarkStack[]
+local stacks
+
+---@type StringSet
+local file_set
+
+---@type boolean
+local show_status_col
 
 local M = {}
 
@@ -291,7 +310,6 @@ M.add_mark_current_pos = function(stack_idx)
 			newmark.col
 		)
 	)
-	vim.notify("EAW stack state after adding: " .. vim.inspect(stacks))
 end
 
 ---@param stack_name string
@@ -399,22 +417,3 @@ M.get_mark_meta = function(stack_idx, mark_idx, field)
 end
 
 return M
-
--- Utility types
-
----@class PhysicalBookmark
----@field file string
----@field line integer
----@field col integer
----@field meta MarkMeta
-
----@class FullBookmark
----@field stack string
----@field file string
----@field line integer
----@field col integer
----@field meta MarkMeta
-
----@class PhysicalStack
----@field name string
----@field bookmarks PhysicalBookmark[]

@@ -116,7 +116,7 @@ M.has_help_dimensions = function()
 	return M.help_dimensions ~= nil
 end
 
----@param o 'vertical' | 'horizontal' | LayoutProvider
+---@param o "vertical" | "horizontal" | LayoutProvider
 M.setup = function(o)
 	if o ~= "vertical" and o ~= "horizontal" and type(o) ~= "table" then
 		error("[spelunk.nvim] Layout engine passed an unsupported orientation: " .. vim.inspect(o))
