@@ -39,3 +39,6 @@ spelunk.display_function = function(mark)
 		require('spelunk.util').get_treesitter_context(mark))
 end
 ```
+
+Note: due to the fact that spelunk does not proactively load buffers, Treesitter context information will only be available once
+a file has been loaded into a buffer for the first time.

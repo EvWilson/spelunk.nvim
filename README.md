@@ -108,7 +108,7 @@ Here's the default mapping object for reference:
 	-- Set UI orientation
 	-- Type: 'vertical' | 'horizontal' | LayoutProvider
 	-- Advanced customization: you may set your own layout provider for fine-grained control over layout
-	-- See `types.lua` and `layout.lua` for guidance on setting this up
+	-- See `layout.lua` for guidance on setting this up
 	orientation = 'vertical',
 	-- Enable to show mark index in status column
 	enable_status_col_display = false,
@@ -249,7 +249,7 @@ If there is functionality you'd like to see added or exposed, please feel free t
 - `all_full_marks()`
 	- Description: return all marks
 	- Returns:
-		- `FullBookmark[]`: see [types.lua](lua/spelunk/types.lua)
+		- `FullBookmark[]`
 
 - `current_full_marks()`
 	- Description: return all marks in the current stack
