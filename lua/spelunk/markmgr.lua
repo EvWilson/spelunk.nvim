@@ -44,7 +44,7 @@ local util = require("spelunk.util")
 ---@type MarkStack[]
 local stacks
 
---- Specifically here to help determine whether to bootstrap extmarks on initial buf enter
+-- Specifically here to help determine whether to bootstrap extmarks on initial buf enter
 ---@type StringSet
 local file_set
 
@@ -67,7 +67,7 @@ local new_mark = function()
 	}
 end
 
---- Utility to standardize the setting of extmarks
+-- Utility to standardize the setting of extmarks
 ---@param mark Mark
 ---@param bufnr integer
 ---@param idx_in_stack integer
@@ -86,17 +86,13 @@ local set_extmark = function(mark, bufnr, idx_in_stack)
 	return mark
 end
 
----@param bufnr integer
----@param id integer
----@return integer, integer
-local get_extmark_pos = function(bufnr, id)
-	local res = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_id, id, {})
-	return res[1] + 1, res[2] + 1
-end
-
+-- Update the sign column indices when updates are made to the stack
 ---@param stack_idx integer
 M.update_indices = function(stack_idx)
-	for mark_idx, mark in ipairs(stacks[stack_idx]) do
+	for mark_idx, mark in ipairs(stacks[stack_idx].marks) do
+		if not mark.extmark_id then
+			goto continue
+		end
 		-- Watch this option set for drift with the main setter
 		-- Need this to add the edit ID
 		local opts = {
@@ -107,10 +103,11 @@ M.update_indices = function(stack_idx)
 		}
 		-- Discard in this instance, extmark_id and bufnr should remain unchanged
 		local _ = vim.api.nvim_buf_set_extmark(mark.bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
+		::continue::
 	end
 end
 
---- Register autocmd to reapply extmarks when a relevant buffer is opened for the first time
+-- Register autocmd to reapply extmarks when a relevant buffer is opened for the first time
 local new_buf_cb = function()
 	vim.api.nvim_create_autocmd("BufWinEnter", {
 		pattern = "*",
@@ -129,6 +126,15 @@ local new_buf_cb = function()
 		end,
 		desc = "[spelunk.nvim] Reapply bookmark extmarks to opened buffers",
 	})
+end
+
+-- Get (row, col) position of extmark
+---@param bufnr integer
+---@param id integer
+---@return integer, integer
+local get_extmark_pos = function(bufnr, id)
+	local res = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_id, id, {})
+	return res[1] + 1, res[2] + 1
 end
 
 ---@param bufnr integer
@@ -166,7 +172,7 @@ local persist_mark_updates = function(persist_args, bufnr)
 	end
 end
 
---- Create a callback to update mark locations and persist on relevant edits
+-- Create a callback to update mark locations and persist on relevant edits
 ---@param args PersistMarksArgs
 local register_and_persist_updates = function(args)
 	if args.persist_enabled then
@@ -292,7 +298,7 @@ M.instances_of_file = function(filename)
 	return count
 end
 
---- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
+-- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
 ---@param stack_idx integer
 ---@param mark_idx integer
 ---@param mark_delta 1 | -1
