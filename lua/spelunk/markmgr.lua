@@ -86,6 +86,14 @@ local set_extmark = function(mark, bufnr, idx_in_stack)
 	return mark
 end
 
+---@param bufnr integer
+---@param id integer
+---@return integer, integer
+local get_extmark_pos = function(bufnr, id)
+	local res = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_id, id, {})
+	return res[1] + 1, res[2] + 1
+end
+
 ---@param stack_idx integer
 M.update_indices = function(stack_idx)
 	for mark_idx, mark in ipairs(stacks[stack_idx]) do
@@ -123,30 +131,52 @@ local new_buf_cb = function()
 	})
 end
 
---- Create a callback to persist changes to mark locations on file updates
+---@param bufnr integer
+local update_mark_locations = function(bufnr)
+	if not bufnr then
+		return
+	end
+	for _, stack in pairs(stacks) do
+		for _, mark in pairs(stack.marks) do
+			if mark.extmark_id and mark.bufnr == bufnr then
+				local row, col = get_extmark_pos(bufnr, mark.extmark_id)
+				mark.line = row
+				mark.col = col
+			end
+		end
+	end
+end
+
+---@param persist_args PersistMarksArgs
+---@param bufnr integer
+local persist_mark_updates = function(persist_args, bufnr)
+	if not persist_args.persist_enabled then
+		return
+	end
+	if not bufnr then
+		return
+	end
+	for _, stack in pairs(stacks) do
+		for _, mark in pairs(stack.marks) do
+			if mark.bufnr == bufnr then
+				persist_args.persist_cb()
+				return
+			end
+		end
+	end
+end
+
+--- Create a callback to update mark locations and persist on relevant edits
 ---@param args PersistMarksArgs
-local persist_mark_updates = function(args)
+local register_and_persist_updates = function(args)
 	if args.persist_enabled then
 		local persist_augroup = vim.api.nvim_create_augroup("SpelunkPersistCallback", { clear = true })
 		vim.api.nvim_create_autocmd("BufWritePost", {
 			group = persist_augroup,
 			pattern = "*",
 			callback = function(ctx)
-				if not args.persist_enabled then
-					return
-				end
-				local bufnr = ctx.buf
-				if not bufnr then
-					return
-				end
-				for _, stack in pairs(stacks) do
-					for _, mark in pairs(stack.marks) do
-						if mark.bufnr == ctx.buf then
-							args.persist_cb()
-							return
-						end
-					end
-				end
+				update_mark_locations(ctx.buf)
+				persist_mark_updates(args, ctx.buf)
 			end,
 			desc = "[spelunk.nvim] Persist mark updates on file change",
 		})
@@ -177,7 +207,7 @@ M.init = function(phys_stacks, persist_args, show_status)
 	end
 
 	new_buf_cb()
-	persist_mark_updates(persist_args)
+	register_and_persist_updates(persist_args)
 end
 
 ---@return integer
