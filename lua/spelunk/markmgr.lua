@@ -44,7 +44,7 @@ local util = require("spelunk.util")
 ---@type MarkStack[]
 local stacks
 
---- Specifically here to help determine whether to bootstrap extmarks on initial buf enter
+-- Specifically here to help determine whether to bootstrap extmarks on initial buf enter
 ---@type StringSet
 local file_set
 
@@ -67,7 +67,7 @@ local new_mark = function()
 	}
 end
 
---- Utility to standardize the setting of extmarks
+-- Utility to standardize the setting of extmarks
 ---@param mark Mark
 ---@param bufnr integer
 ---@param idx_in_stack integer
@@ -86,9 +86,13 @@ local set_extmark = function(mark, bufnr, idx_in_stack)
 	return mark
 end
 
+-- Update the sign column indices when updates are made to the stack
 ---@param stack_idx integer
 M.update_indices = function(stack_idx)
-	for mark_idx, mark in ipairs(stacks[stack_idx]) do
+	for mark_idx, mark in ipairs(stacks[stack_idx].marks) do
+		if not mark.extmark_id then
+			goto continue
+		end
 		-- Watch this option set for drift with the main setter
 		-- Need this to add the edit ID
 		local opts = {
@@ -99,10 +103,11 @@ M.update_indices = function(stack_idx)
 		}
 		-- Discard in this instance, extmark_id and bufnr should remain unchanged
 		local _ = vim.api.nvim_buf_set_extmark(mark.bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
+		::continue::
 	end
 end
 
---- Register autocmd to reapply extmarks when a relevant buffer is opened for the first time
+-- Register autocmd to reapply extmarks when a relevant buffer is opened for the first time
 local new_buf_cb = function()
 	vim.api.nvim_create_autocmd("BufWinEnter", {
 		pattern = "*",
@@ -123,30 +128,61 @@ local new_buf_cb = function()
 	})
 end
 
---- Create a callback to persist changes to mark locations on file updates
+-- Get (row, col) position of extmark
+---@param bufnr integer
+---@param id integer
+---@return integer, integer
+local get_extmark_pos = function(bufnr, id)
+	local res = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_id, id, {})
+	return res[1] + 1, res[2] + 1
+end
+
+---@param bufnr integer
+local update_mark_locations = function(bufnr)
+	if not bufnr then
+		return
+	end
+	for _, stack in pairs(stacks) do
+		for _, mark in pairs(stack.marks) do
+			if mark.extmark_id and mark.bufnr == bufnr then
+				local row, col = get_extmark_pos(bufnr, mark.extmark_id)
+				mark.line = row
+				mark.col = col
+			end
+		end
+	end
+end
+
+---@param persist_args PersistMarksArgs
+---@param bufnr integer
+local persist_mark_updates = function(persist_args, bufnr)
+	if not persist_args.persist_enabled then
+		return
+	end
+	if not bufnr then
+		return
+	end
+	for _, stack in pairs(stacks) do
+		for _, mark in pairs(stack.marks) do
+			if mark.bufnr == bufnr then
+				persist_args.persist_cb()
+				return
+			end
+		end
+	end
+end
+
+-- Create a callback to update mark locations and persist on relevant edits
 ---@param args PersistMarksArgs
-local persist_mark_updates = function(args)
+local register_and_persist_updates = function(args)
 	if args.persist_enabled then
 		local persist_augroup = vim.api.nvim_create_augroup("SpelunkPersistCallback", { clear = true })
 		vim.api.nvim_create_autocmd("BufWritePost", {
 			group = persist_augroup,
 			pattern = "*",
 			callback = function(ctx)
-				if not args.persist_enabled then
-					return
-				end
-				local bufnr = ctx.buf
-				if not bufnr then
-					return
-				end
-				for _, stack in pairs(stacks) do
-					for _, mark in pairs(stack.marks) do
-						if mark.bufnr == ctx.buf then
-							args.persist_cb()
-							return
-						end
-					end
-				end
+				update_mark_locations(ctx.buf)
+				persist_mark_updates(args, ctx.buf)
 			end,
 			desc = "[spelunk.nvim] Persist mark updates on file change",
 		})
@@ -177,7 +213,7 @@ M.init = function(phys_stacks, persist_args, show_status)
 	end
 
 	new_buf_cb()
-	persist_mark_updates(persist_args)
+	register_and_persist_updates(persist_args)
 end
 
 ---@return integer
@@ -262,7 +298,7 @@ M.instances_of_file = function(filename)
 	return count
 end
 
---- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
+-- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
 ---@param stack_idx integer
 ---@param mark_idx integer
 ---@param mark_delta 1 | -1
