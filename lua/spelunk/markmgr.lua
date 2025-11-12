@@ -285,17 +285,18 @@ M.stack_idx_for_name = function(stack_name)
 end
 
 ---@param filename string
+---@param current_stack_index integer
 ---@return integer
-M.instances_of_file = function(filename)
-	local count = 0
-	for _, stack in ipairs(stacks) do
-		for _, mark in ipairs(stack.marks) do
-			if mark.file == filename then
-				count = count + 1
-			end
-		end
-	end
-	return count
+M.instances_of_file = function(filename, current_stack_index)
+    local count = 0
+    ---@type MarkStack
+    local currstack = stacks[current_stack_index]
+    for _, mark in ipairs(currstack.marks) do
+        if mark.file == filename then
+            count = count + 1
+        end
+    end
+    return count
 end
 
 -- Moves mark at the given indices in the given direction, returning whether or not the move was performed.
@@ -462,6 +463,11 @@ end
 ---@return any | nil
 M.get_mark_meta = function(stack_idx, mark_idx, field)
 	return stacks[stack_idx].marks[mark_idx].meta[field]
+end
+
+---@return MarkStack[]
+M.stacks = function()
+	return stacks
 end
 
 return M

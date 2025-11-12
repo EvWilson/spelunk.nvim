@@ -3,6 +3,7 @@ local persist = require("spelunk.persistence")
 ---@diagnostic disable-next-line
 local tele = require("spelunk.telescope")
 local markmgr = require("spelunk.markmgr")
+local util = require("spelunk.util")
 
 local M = {}
 
@@ -66,6 +67,7 @@ local update_window = function(updated_indices)
 		markmgr.update_indices(current_stack_index)
 	end
 	ui.update_window(get_win_update_opts())
+	util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
 end
 
 ---@param file string
@@ -324,7 +326,7 @@ end
 ---@return string
 M.statusline = function()
 	local path = vim.fn.expand("%:p")
-	return statusline_prefix .. " " .. markmgr.instances_of_file(path)
+	return statusline_prefix .. " " .. markmgr.instances_of_file(path, current_stack_index)
 end
 
 ---@param marks PhysicalBookmark[]
