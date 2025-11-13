@@ -29,6 +29,7 @@ local default_config = {
 		edit_stack = "E",
 		close = "q",
 		help = "h",
+		edit_line = "w",
 	},
 	enable_persist = false,
 	statusline_prefix = "🔖",

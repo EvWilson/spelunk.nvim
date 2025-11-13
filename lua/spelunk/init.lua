@@ -464,4 +464,26 @@ M.setup = function(c)
 	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
 end
 
+--- Update the line of the selected mark in the current stack.
+M.update_mark_line=function()
+    local new_line = ui.get_selected_mark_line(cursor_index)
+    if not new_line then
+        return
+    end
+    ---@type Mark
+    -- local mark = markmgr.get_mark(current_stack_index, cursor_index)
+    -- local mark = 
+    local old_line = mark.line
+
+    if new_line == old_line then
+        return
+    end
+
+    mark.line = new_line
+
+    M.persist()
+	update_window(true)
+    vim.notify(string.format("[spelunk.nvim] Bookmark %d line change: %d -> %d", cursor_index, old_line, new_line))
+end
+
 return M

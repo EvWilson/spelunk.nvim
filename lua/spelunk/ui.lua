@@ -328,6 +328,11 @@ local create_windows = function(max_stack_size)
 			':lua require("spelunk").edit_current_stack()<CR>',
 			"[spelunk.nvim] Edit the name of the current stack"
 		)
+		set(
+			window_config.edit_line,
+			':lua require("spelunk").update_mark_line()<CR>',
+			"[spelunk.nvim] Edit the line of the selected mark"
+		)
 		set(window_config.close, ':lua require("spelunk").close_windows()<CR>', "[spelunk.nvim] Close UI")
 		set(window_config.help, ':lua require("spelunk").show_help()<CR>', "[spelunk.nvim] Show help menu")
 
@@ -394,7 +399,7 @@ M.update_window = function(opts)
 	end
 	local content = { "Current stack: " .. opts.title, unpack(content_lines) }
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
-	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+	-- vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 
 	-- Move cursor to the selected line
 	local offset
@@ -424,6 +429,20 @@ M.close_windows = function()
 		vim.api.nvim_win_close(window_id, true)
 		vim.api.nvim_set_current_win(M.previous_win_id)
 	end
+end
+
+--- Looks at the text currently displayed in the UI window (which *is* modifiable)
+--- and returns the `line` of the currently selected bookmark.
+--- It makes no difference if the user modifies both the filename and the line nr; only the line nr is returned.
+---@param mark_idx integer
+---@return integer | nil
+M.get_selected_mark_line = function(mark_idx)
+    local bufnr = vim.api.nvim_win_get_buf(window_id)
+    local window_id_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local mark_filename_and_line = window_id_lines[mark_idx+1]
+    -- the user might've modified the filename too, but we only extract the line
+    local mark_line = tonumber(string.match(mark_filename_and_line, ":(%d+)"))
+    return mark_line
 end
 
 return M
