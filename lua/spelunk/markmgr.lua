@@ -57,7 +57,7 @@ local M = {}
 local ns_id = vim.api.nvim_create_namespace("spelunk")
 
 ---@return Mark
-local new_mark = function()
+M.new_mark = function()
 	---@type Mark
 	return {
 		file = vim.api.nvim_buf_get_name(0),
@@ -338,7 +338,7 @@ end
 ---@param stack_idx integer
 M.add_mark_current_pos = function(stack_idx)
 	local bufnr = vim.api.nvim_get_current_buf()
-	local newmark = new_mark()
+	local newmark = M.new_mark()
 	newmark.bufnr = bufnr
 	table.insert(stacks[stack_idx].marks, newmark)
 	newmark = set_extmark(newmark, bufnr, #stacks[stack_idx].marks)
@@ -462,6 +462,19 @@ end
 ---@return any | nil
 M.get_mark_meta = function(stack_idx, mark_idx, field)
 	return stacks[stack_idx].marks[mark_idx].meta[field]
+end
+
+---@param stack_idx integer
+---@param file string
+---@param line integer
+---@return integer | nil
+M.mark_exists = function(stack_idx, file, line)
+	for mark_idx, mark in ipairs(stacks[stack_idx].marks) do
+        if mark.file == file and mark.line == line then
+            return mark_idx
+        end
+	end
+    return nil
 end
 
 return M

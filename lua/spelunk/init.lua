@@ -118,6 +118,22 @@ M.add_bookmark = function()
 	M.persist()
 end
 
+--- Delete the bookmark from the current line, if there is one.
+--- Bookmarks can also be deleted from the UI window, but that takes more keystrokes.
+M.delete_bookmark = function()
+    local mark = markmgr.new_mark()
+    local mark_idx = markmgr.mark_exists(current_stack_index, mark.file, mark.line)
+    if not mark_idx then
+        vim.notify("[spelunk.nvim] No bookmark on line " .. mark.line)
+        return
+    end
+
+    markmgr.delete_mark(current_stack_index, mark_idx)
+	update_window(true)
+	M.persist()
+    vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, mark.line))
+end
+
 ---@param direction 1 | -1
 M.move_cursor = function(direction)
 	if direction ~= 1 and direction ~= -1 then
@@ -416,6 +432,7 @@ M.setup = function(c)
 	local set = cfg.set_keymap
 	set(base_config.toggle, M.toggle_window, "[spelunk.nvim] Toggle UI")
 	set(base_config.add, M.add_bookmark, "[spelunk.nvim] Add bookmark")
+	set(base_config.delete, M.delete_bookmark, "[spelunk.nvim] Delete current line bookmark")
 	set(
 		base_config.next_bookmark,
 		':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
