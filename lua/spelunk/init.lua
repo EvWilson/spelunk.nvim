@@ -122,7 +122,7 @@ end
 --- Bookmarks can also be deleted from the UI window, but that takes more keystrokes.
 M.delete_bookmark = function()
     local mark = markmgr.new_mark()
-    local mark_idx = markmgr.mark_exists(current_stack_index, mark.file, mark.line)
+    local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, mark.file, mark.line)
     if not mark_idx then
         vim.notify("[spelunk.nvim] No bookmark on line " .. mark.line)
         return

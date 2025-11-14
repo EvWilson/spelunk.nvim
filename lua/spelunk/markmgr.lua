@@ -468,7 +468,7 @@ end
 ---@param file string
 ---@param line integer
 ---@return integer | nil
-M.mark_exists = function(stack_idx, file, line)
+M.get_mark_idx_from_line = function(stack_idx, file, line)
 	for mark_idx, mark in ipairs(stacks[stack_idx].marks) do
         if mark.file == file and mark.line == line then
             return mark_idx
