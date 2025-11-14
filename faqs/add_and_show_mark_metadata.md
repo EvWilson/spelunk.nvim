@@ -6,7 +6,6 @@ Some folks want to add custom aliases for bookmarks. This is a sample setup for 
 {
 	'EvWilson/spelunk.nvim',
 	dependencies = {
-		'nvim-lua/plenary.nvim',
 		'nvim-telescope/telescope.nvim',
 	},
 	config = function()
