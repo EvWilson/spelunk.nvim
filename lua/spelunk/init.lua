@@ -34,6 +34,24 @@ end
 ---@param mark PhysicalBookmark | FullBookmark
 ---@return string
 M.display_function = function(mark)
+    local mark_idx = nil
+    local mark_name = nil
+
+    for i, mark_ in ipairs(markmgr.physical_stack(current_stack_index).bookmarks) do
+        if mark_.file == mark.file and mark_.line == mark.line then
+            mark_idx = i
+            break
+        end
+    end
+
+    if mark_idx then
+        mark_name = markmgr.get_mark_meta(current_stack_index, mark_idx, "name")
+    end
+
+    if mark_name then
+        return string.format("%s:%d [%s]", M.filename_formatter(mark.file), mark.line, mark_name)
+    end
+
 	return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
 end
 
@@ -369,6 +387,32 @@ end
 ---@param val any
 M.add_mark_meta = function(stack_idx, mark_idx, field, val)
 	markmgr.add_mark_meta(stack_idx, mark_idx, field, val)
+	M.persist()
+end
+
+--- Give the bookmark on the selected line a name.
+M.add_mark_name = function()
+    local file = vim.api.nvim_buf_get_name(0)
+    local line = vim.fn.line(".")
+
+    local mark_idx = nil
+
+    -- PR #72 defines this for-loop as a util func. once that's merged, use:
+    -- local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
+    for i, mark in ipairs(markmgr.physical_stack(current_stack_index).bookmarks) do
+        if mark.file == file and mark.line == line then
+            mark_idx = i
+            break
+        end
+    end
+
+    if not mark_idx then
+        vim.notify(string.format("[spelunk.nvim] Line %d does not have a bookmark", line), vim.log.levels.ERROR)
+        return
+    end
+
+	local name = vim.fn.input("[spelunk.nvim] Name current bookmark: ")
+	M.add_mark_meta(current_stack_index, mark_idx, "name", name)
 end
 
 ---@param stack_idx integer
@@ -420,6 +464,11 @@ M.setup = function(c)
 		base_config.next_bookmark,
 		':lua require("spelunk").select_and_goto_bookmark(1)<CR>',
 		"[spelunk.nvim] Go to next bookmark"
+	)
+	set(
+		base_config.add_mark_name,
+		':lua require("spelunk").add_mark_name()<CR>',
+		"[spelunk.nvim] Name current bookmark"
 	)
 	set(
 		base_config.prev_bookmark,
