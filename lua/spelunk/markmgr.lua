@@ -57,7 +57,7 @@ local M = {}
 local ns_id = vim.api.nvim_create_namespace("spelunk")
 
 ---@return Mark
-M.new_mark = function()
+local new_mark = function()
 	---@type Mark
 	return {
 		file = vim.api.nvim_buf_get_name(0),
@@ -338,7 +338,7 @@ end
 ---@param stack_idx integer
 M.add_mark_current_pos = function(stack_idx)
 	local bufnr = vim.api.nvim_get_current_buf()
-	local newmark = M.new_mark()
+	local newmark = new_mark()
 	newmark.bufnr = bufnr
 	table.insert(stacks[stack_idx].marks, newmark)
 	newmark = set_extmark(newmark, bufnr, #stacks[stack_idx].marks)
