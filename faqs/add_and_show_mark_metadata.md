@@ -63,7 +63,7 @@ Similar to the above, but:
                 mark_name = markmgr.get_mark_meta(spelunk.get_current_stack_index(), mark_idx, "name")
             end
 
-            if mark_name then
+            if mark_name and mark_name ~= "" then
                 return string.format("%s:%d [%s]", spelunk.filename_formatter(mark.file), mark.line, mark_name)
             end
 
