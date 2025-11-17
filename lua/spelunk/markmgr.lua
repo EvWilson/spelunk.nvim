@@ -465,6 +465,19 @@ M.get_mark_meta = function(stack_idx, mark_idx, field)
 	return stacks[stack_idx].marks[mark_idx].meta[field]
 end
 
+---@param stack_idx integer
+---@param file string
+---@param line integer
+---@return integer | nil
+M.get_mark_idx_from_line = function(stack_idx, file, line)
+	for mark_idx, mark in ipairs(stacks[stack_idx].marks) do
+        if mark.file == file and mark.line == line then
+            return mark_idx
+        end
+	end
+  return nil
+end
+
 ---@return MarkStack[]
 M.stacks = function()
 	return stacks

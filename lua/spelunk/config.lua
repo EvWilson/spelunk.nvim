@@ -6,6 +6,7 @@ local default_config = {
 	base_mappings = {
 		toggle = "<leader>bt",
 		add = "<leader>ba",
+		delete = "<leader>bd",
 		next_bookmark = "<leader>bn",
 		prev_bookmark = "<leader>bp",
 		search_bookmarks = "<leader>bf",
