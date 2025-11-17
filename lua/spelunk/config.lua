@@ -12,6 +12,7 @@ local default_config = {
 		search_bookmarks = "<leader>bf",
 		search_current_bookmarks = "<leader>bc",
 		search_stacks = "<leader>bs",
+		change_line = "<leader>bl",
 	},
 	window_mappings = {
 		cursor_down = "j",
@@ -29,7 +30,6 @@ local default_config = {
 		edit_stack = "E",
 		close = "q",
 		help = "h",
-		edit_line = "w",
 	},
 	enable_persist = false,
 	statusline_prefix = "🔖",

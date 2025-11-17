@@ -68,6 +68,8 @@ Here's the default mapping object for reference:
 		search_current_bookmarks = '<leader>bc',
 		-- Fuzzy find all stacks
 		search_stacks = '<leader>bs',
+		-- Change line of hovered bookmark
+		change_line = "<leader>bl",
 	},
 	window_mappings = {
 		-- Move the UI cursor down
@@ -100,8 +102,6 @@ Here's the default mapping object for reference:
 		close = 'q',
 		-- Open the help menu
 		help = 'h',
-		-- Edit line of a bookmark, then press this to save it
-		edit_line = 'w',
 	},
 	-- Flag to enable directory-scoped bookmark persistence
 	enable_persist = false,

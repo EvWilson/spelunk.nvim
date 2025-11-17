@@ -463,59 +463,34 @@ M.setup = function(c)
 		"[spelunk.nvim] Fuzzy find bookmarks in current stack"
 	)
 	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
+    set(base_config.change_line, M.change_mark_line, "[spelunk.nvim] Change bookmark line")
 end
-
-
----@param file_path string
----@return integer
-local function line_count(file_path)
-  local fd = uv.fs_open(file_path, "r", 438)  -- 438 = 0666 permissions
-  if not fd then
-    vim.notify("File not found: " .. file_path, vim.log.levels.ERROR)
-    return 0
-  end
-
-  local stat = uv.fs_fstat(fd)
-  if not stat then
-    uv.fs_close(fd)
-    return 0
-  end
-
-  local data = uv.fs_read(fd, stat.size, 0)
-  uv.fs_close(fd)
-  if not data then return 0 end
-
-  local count = 0
-  for _ in data:gmatch("\n") do
-    count = count + 1
-  end
-
-  -- add 1 if file doesn't end with newline but has content
-  if #data > 0 and data:sub(-1) ~= "\n" then
-    count = count + 1
-  end
-
-  return count
-end
-
 
 --- Update the line of the selected mark in the current stack.
-M.update_mark_line=function()
-    local new_line = ui.get_selected_mark_line(cursor_index)
+M.change_mark_line = function()
+    local line =  vim.fn.line(".")
+    ---@type integer | nil
+    local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, vim.api.nvim_buf_get_name(0), line)
+    if not mark_idx then
+        vim.notify("[spelunk.nvim] No bookmark on line " .. line, vim.log.levels.ERROR)
+        return
+    end
+
+    ---@type Mark
+    local mark = markmgr.get_mark(current_stack_index, mark_idx)
+    local old_line = mark.line
+
+    local new_line = tonumber(vim.fn.input("[spelunk.nvim] Move bookmark to line: "))
     if not new_line or new_line == 0 then
         return
     end
-    ---@type Mark
-    -- local mark = markmgr.get_mark(current_stack_index, cursor_index)
-    -- local mark = 
-    local old_line = mark.line
 
     if new_line == old_line then
         return
     end
 
-    local nr_lines = line_count(mark.file)
-    if  new_line > nr_lines then
+    local nr_lines = util.line_count(mark.file)
+    if new_line > nr_lines then
         vim.notify("[spelunk.nvim] This file only has " .. nr_lines .. " lines", vim.log.levels.ERROR)
         return
     end
@@ -523,7 +498,7 @@ M.update_mark_line=function()
     mark.line = new_line
 
     M.persist()
-	update_window(true)
+    update_window(true)
     vim.notify(string.format("[spelunk.nvim] Bookmark %d line change: %d -> %d", cursor_index, old_line, new_line))
 end
 

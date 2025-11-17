@@ -481,6 +481,7 @@ end
 ---@return MarkStack[]
 M.stacks = function()
 	return stacks
+end
 
 ---@param mark_idx integer
 ---@return Mark
