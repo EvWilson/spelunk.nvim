@@ -8,7 +8,6 @@ local default_config = {
 		add = "<leader>ba",
 		delete = "<leader>bd",
 		next_bookmark = "<leader>bn",
-		add_mark_name = "<leader>bm",
 		prev_bookmark = "<leader>bp",
 		search_bookmarks = "<leader>bf",
 		search_current_bookmarks = "<leader>bc",

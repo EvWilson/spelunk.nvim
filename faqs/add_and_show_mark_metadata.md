@@ -30,3 +30,59 @@ Some folks want to add custom aliases for bookmarks. This is a sample setup for 
 	end
 },
 ```
+
+Similar to the above, but:
+- add a name to the bookmark on the hovered line (if it exists)
+- still include the filename and line number when displaying the bookmarks, even if you've named them
+
+```lua
+{
+	'EvWilson/spelunk.nvim',
+	dependencies = {
+		'nvim-telescope/telescope.nvim',
+	},
+	config = function()
+		local spelunk = require('spelunk')
+		spelunk.setup({ enable_persist = true })
+
+        -- Display filename and line (default) and optionally the bookmark name
+        spelunk.display_function = function(mark)
+            local mark_idx = nil
+            local mark_name = nil
+
+            for i, mark_ in ipairs(markmgr.physical_stack(current_stack_index).bookmarks) do
+                if mark_.file == mark.file and mark_.line == mark.line then
+                    mark_idx = i
+                    break
+                end
+            end
+
+            if mark_idx then
+                mark_name = markmgr.get_mark_meta(current_stack_index, mark_idx, "name")
+            end
+
+            if mark_name then
+                return string.format("%s:%d [%s]", M.filename_formatter(mark.file), mark.line, mark_name)
+            end
+
+            return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
+        end
+
+        -- Give the bookmark on the line you're on a name
+        spelunk.add_mark_name = function()
+            local line = vim.fn.line(".")
+            local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, vim.api.nvim_buf_get_name(0), line)
+            if not mark_idx then
+                vim.notify(string.format("[spelunk.nvim] Line %d does not have a bookmark", line), vim.log.levels.ERROR)
+                return
+            end
+            local name = vim.fn.input("[spelunk.nvim] Name current bookmark: ")
+            M.add_mark_meta(current_stack_index, mark_idx, "name", name)
+        end
+
+		set('n', '<leader>bm', function()
+			spelunk.add_mark_name()
+		end)
+	end
+}
+```

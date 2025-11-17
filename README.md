@@ -60,8 +60,6 @@ Here's the default mapping object for reference:
 		delete = '<leader>bd',
 		-- Move to the next bookmark in the stack
 		next_bookmark = '<leader>bn',
-		-- Name the bookmark you are currently on
-		add_mark_name = '<leader>bm',
 		-- Move to the previous bookmark in the stack
 		prev_bookmark = '<leader>bp',
 		-- Fuzzy-find all bookmarks
