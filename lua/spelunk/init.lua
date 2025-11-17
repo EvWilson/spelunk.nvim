@@ -483,4 +483,8 @@ M.setup = function(c)
 	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
 end
 
+M.get_current_stack_index = function()
+    return current_stack_index
+end
+
 return M
