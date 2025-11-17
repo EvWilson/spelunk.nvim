@@ -16,9 +16,6 @@ If you'd like to change this to display the Treesitter context for the current m
 ```lua
 {
 	'EvWilson/spelunk.nvim',
-	dependencies = {
-		'nvim-lua/plenary.nvim',
-	},
 	config = function()
 		local spelunk = require('spelunk')
 		spelunk.setup()

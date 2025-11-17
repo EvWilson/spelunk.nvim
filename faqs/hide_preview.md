@@ -6,9 +6,6 @@ Here's an example of leaving the preview UI pane un-rendered, with a sample `laz
 ```lua
 {
 	'EvWilson/spelunk.nvim',
-	dependencies = {
-		'nvim-lua/plenary.nvim',
-	},
 	config = function()
 	local spelunk = require('spelunk')
 	local base_dimensions = function()
