@@ -1,4 +1,3 @@
-local uv = vim.loop
 local ui = require("spelunk.ui")
 local persist = require("spelunk.persistence")
 ---@diagnostic disable-next-line
