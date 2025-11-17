@@ -3,6 +3,7 @@ local persist = require("spelunk.persistence")
 ---@diagnostic disable-next-line
 local tele = require("spelunk.telescope")
 local markmgr = require("spelunk.markmgr")
+local util = require("spelunk.util")
 
 local M = {}
 
@@ -84,6 +85,9 @@ local update_window = function(updated_indices)
 		markmgr.update_indices(current_stack_index)
 	end
 	ui.update_window(get_win_update_opts())
+	if show_status_col then
+	    util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
+	end
 end
 
 ---@param file string
@@ -134,6 +138,23 @@ M.add_bookmark = function()
 	markmgr.add_mark_current_pos(current_stack_index)
 	update_window(true)
 	M.persist()
+end
+
+--- Delete the bookmark from the current line, if there is one.
+--- Bookmarks can also be deleted from the UI window, but that takes more keystrokes.
+M.delete_bookmark = function()
+	local file = vim.api.nvim_buf_get_name(0)
+	local line = vim.fn.line(".")
+    local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
+    if not mark_idx then
+        vim.notify("[spelunk.nvim] No bookmark on line " .. line)
+        return
+    end
+
+    markmgr.delete_mark(current_stack_index, mark_idx)
+	update_window(true)
+	M.persist()
+    vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, line))
 end
 
 ---@param direction 1 | -1
@@ -342,7 +363,7 @@ end
 ---@return string
 M.statusline = function()
 	local path = vim.fn.expand("%:p")
-	return statusline_prefix .. " " .. markmgr.instances_of_file(path)
+	return statusline_prefix .. " " .. markmgr.instances_of_file(path, current_stack_index)
 end
 
 ---@param marks PhysicalBookmark[]
@@ -460,6 +481,7 @@ M.setup = function(c)
 	local set = cfg.set_keymap
 	set(base_config.toggle, M.toggle_window, "[spelunk.nvim] Toggle UI")
 	set(base_config.add, M.add_bookmark, "[spelunk.nvim] Add bookmark")
+	set(base_config.delete, M.delete_bookmark, "[spelunk.nvim] Delete current line bookmark")
 	set(
 		base_config.next_bookmark,
 		':lua require("spelunk").select_and_goto_bookmark(1)<CR>',

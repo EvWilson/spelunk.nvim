@@ -13,7 +13,6 @@
 ---@field max_stack_size integer
 
 local layout = require("spelunk.layout")
-local popup = require("plenary.popup")
 
 local M = {}
 
@@ -39,8 +38,6 @@ local cursor_character
 local focus_cb
 local unfocus_cb
 
----@type string[]
-local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 
 ---@type integer | nil
 M.previous_win_id = nil
@@ -133,19 +130,40 @@ M.setup = function(base_cfg, window_cfg, cursor_char)
 end
 
 ---@param opts CreateWinOpts
-local create_window = function(opts)
-	local bufnr = vim.api.nvim_create_buf(false, true)
-	local win_id = popup.create(bufnr, {
-		title = opts.title,
-		line = opts.line,
-		col = opts.col,
-		minwidth = opts.minwidth,
-		minheight = opts.minheight,
-		borderchars = border_chars,
-	})
-	vim.api.nvim_set_option_value("wrap", false, { win = win_id })
-	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
-	return bufnr, win_id
+local function create_window(opts)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+
+  local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
+  local border = {
+    { border_chars[5], "FloatBorder" }, -- top-left
+    { border_chars[1], "FloatBorder" }, -- top
+    { border_chars[6], "FloatBorder" }, -- top-right
+    { border_chars[2], "FloatBorder" }, -- right
+    { border_chars[7], "FloatBorder" }, -- bottom-right
+    { border_chars[3], "FloatBorder" }, -- bottom
+    { border_chars[8], "FloatBorder" }, -- bottom-left
+    { border_chars[4], "FloatBorder" }, -- left
+  }
+
+  -- Window options for nvim_open_win
+  local win_opts = {
+    style = "minimal",
+    relative = "editor",
+    row = opts.line,
+    col = opts.col,
+    width = opts.minwidth,
+    height = opts.minheight,
+    border = border,
+    title = opts.title,
+    title_pos = "center",
+  }
+
+  local win_id = vim.api.nvim_open_win(bufnr, true, win_opts)
+
+  vim.api.nvim_set_option_value("wrap", false, { win = win_id })
+  vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+
+  return bufnr, win_id
 end
 
 M.show_help = function()
@@ -180,6 +198,7 @@ M.show_help = function()
 		"---------------",
 		"Toggle UI               " .. fmt(base_config.toggle),
 		"Add bookmark            " .. fmt(base_config.add),
+		"Delete current bookmark " .. fmt(base_config.delete),
 		"Next bookmark           " .. fmt(base_config.next_bookmark),
 		"Prev bookmark           " .. fmt(base_config.prev_bookmark),
 		"Search bookmarks        " .. fmt(base_config.search_bookmarks),

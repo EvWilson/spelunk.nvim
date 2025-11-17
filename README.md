@@ -35,7 +35,6 @@ require('lazy').setup({
 	{
 		'EvWilson/spelunk.nvim',
 		dependencies = {
-			'nvim-lua/plenary.nvim',           -- For window drawing utilities
 			'nvim-telescope/telescope.nvim',   -- Optional: for fuzzy search capabilities
 			'nvim-treesitter/nvim-treesitter', -- Optional: for showing grammar context
 		},
@@ -57,6 +56,8 @@ Here's the default mapping object for reference:
 		toggle = '<leader>bt',
 		-- Add a bookmark to the current stack
 		add = '<leader>ba',
+		-- Delete current line's bookmark from the current stack
+		delete = '<leader>bd',
 		-- Move to the next bookmark in the stack
 		next_bookmark = '<leader>bn',
 		-- Name the bookmark you are currently on
