@@ -372,6 +372,9 @@ end
 M.delete_mark = function(stack_idx, mark_idx)
 	---@type Mark
 	local delmark = table.remove(stacks[stack_idx].marks, mark_idx)
+	if not delmark then
+		return 1
+	end
 	if delmark.extmark_id then
 		local success = vim.api.nvim_buf_del_extmark(delmark.bufnr, ns_id, delmark.extmark_id)
 		if not success then
