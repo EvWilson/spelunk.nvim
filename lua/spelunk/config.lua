@@ -22,6 +22,7 @@ local default_config = {
 		goto_bookmark = "<CR>",
 		goto_bookmark_hsplit = "x",
 		goto_bookmark_vsplit = "v",
+		change_line = "l",
 		delete_bookmark = "d",
 		next_stack = "<Tab>",
 		previous_stack = "<S-Tab>",

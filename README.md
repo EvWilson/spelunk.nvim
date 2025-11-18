@@ -86,6 +86,8 @@ Here's the default mapping object for reference:
 		goto_bookmark_hsplit = 'x',
 		-- Jump to the selected bookmark in a new horizontal split
 		goto_bookmark_vsplit = 'v',
+		-- Change line of selected bookmark
+		change_line = 'l',
 		-- Delete the selected bookmark
 		delete_bookmark = 'd',
 		-- Navigate to the next stack
