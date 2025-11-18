@@ -68,7 +68,7 @@ local update_window = function(updated_indices)
 	end
 	ui.update_window(get_win_update_opts())
 	if show_status_col then
-	    util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
+		util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
 	end
 end
 
@@ -127,16 +127,16 @@ end
 M.delete_bookmark = function()
 	local file = vim.api.nvim_buf_get_name(0)
 	local line = vim.fn.line(".")
-    local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
-    if not mark_idx then
-        vim.notify("[spelunk.nvim] No bookmark on line " .. line)
-        return
-    end
+	local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
+	if not mark_idx then
+		vim.notify("[spelunk.nvim] No bookmark on line " .. line)
+		return
+	end
 
-    markmgr.delete_mark(current_stack_index, mark_idx)
+	markmgr.delete_mark(current_stack_index, mark_idx)
 	update_window(true)
 	M.persist()
-    vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, line))
+	vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, line))
 end
 
 ---@param direction 1 | -1
@@ -390,6 +390,7 @@ end
 ---@param val any
 M.add_mark_meta = function(stack_idx, mark_idx, field, val)
 	markmgr.add_mark_meta(stack_idx, mark_idx, field, val)
+	M.persist()
 end
 
 ---@param stack_idx integer
@@ -462,6 +463,10 @@ M.setup = function(c)
 		"[spelunk.nvim] Fuzzy find bookmarks in current stack"
 	)
 	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
+end
+
+M.get_current_stack_index = function()
+	return current_stack_index
 end
 
 return M
