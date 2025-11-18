@@ -35,24 +35,6 @@ end
 ---@param mark PhysicalBookmark | FullBookmark
 ---@return string
 M.display_function = function(mark)
-    local mark_idx = nil
-    local mark_name = nil
-
-    for i, mark_ in ipairs(markmgr.physical_stack(current_stack_index).bookmarks) do
-        if mark_.file == mark.file and mark_.line == mark.line then
-            mark_idx = i
-            break
-        end
-    end
-
-    if mark_idx then
-        mark_name = markmgr.get_mark_meta(current_stack_index, mark_idx, "name")
-    end
-
-    if mark_name then
-        return string.format("%s:%d [%s]", M.filename_formatter(mark.file), mark.line, mark_name)
-    end
-
 	return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
 end
 
@@ -86,7 +68,7 @@ local update_window = function(updated_indices)
 	end
 	ui.update_window(get_win_update_opts())
 	if show_status_col then
-	    util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
+		util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
 	end
 end
 
@@ -145,16 +127,16 @@ end
 M.delete_bookmark = function()
 	local file = vim.api.nvim_buf_get_name(0)
 	local line = vim.fn.line(".")
-    local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
-    if not mark_idx then
-        vim.notify("[spelunk.nvim] No bookmark on line " .. line)
-        return
-    end
+	local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, file, line)
+	if not mark_idx then
+		vim.notify("[spelunk.nvim] No bookmark on line " .. line)
+		return
+	end
 
-    markmgr.delete_mark(current_stack_index, mark_idx)
+	markmgr.delete_mark(current_stack_index, mark_idx)
 	update_window(true)
 	M.persist()
-    vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, line))
+	vim.notify(string.format("[spelunk.nvim] Deleted bookmark %d from line %d", mark_idx, line))
 end
 
 ---@param direction 1 | -1
@@ -484,7 +466,7 @@ M.setup = function(c)
 end
 
 M.get_current_stack_index = function()
-    return current_stack_index
+	return current_stack_index
 end
 
 return M
