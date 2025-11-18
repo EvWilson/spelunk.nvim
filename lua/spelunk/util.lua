@@ -142,4 +142,37 @@ M.copy_tbl = function(tbl)
 	return copy
 end
 
+---@param file_path string
+---@return integer
+M.line_count = function(file_path)
+  local uv = vim.loop
+  local fd = uv.fs_open(file_path, "r", 438)  -- 438 = 0666 permissions
+  if not fd then
+    vim.notify("[spelunk.nvim] File not found: " .. file_path, vim.log.levels.ERROR)
+    return 0
+  end
+
+  local stat = uv.fs_fstat(fd)
+  if not stat then
+    uv.fs_close(fd)
+    return 0
+  end
+
+  local data = uv.fs_read(fd, stat.size, 0)
+  uv.fs_close(fd)
+  if not data then return 0 end
+
+  local count = 0
+  for _ in data:gmatch("\n") do
+    count = count + 1
+  end
+
+  -- add 1 if file doesn't end with newline but has content
+  if #data > 0 and data:sub(-1) ~= "\n" then
+    count = count + 1
+  end
+
+  return count
+end
+
 return M

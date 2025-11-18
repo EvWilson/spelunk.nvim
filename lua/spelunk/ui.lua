@@ -38,7 +38,6 @@ local cursor_character
 local focus_cb
 local unfocus_cb
 
-
 ---@type integer | nil
 M.previous_win_id = nil
 
@@ -131,39 +130,39 @@ end
 
 ---@param opts CreateWinOpts
 local function create_window(opts)
-  local bufnr = vim.api.nvim_create_buf(false, true)
+	local bufnr = vim.api.nvim_create_buf(false, true)
 
-  local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
-  local border = {
-    { border_chars[5], "FloatBorder" }, -- top-left
-    { border_chars[1], "FloatBorder" }, -- top
-    { border_chars[6], "FloatBorder" }, -- top-right
-    { border_chars[2], "FloatBorder" }, -- right
-    { border_chars[7], "FloatBorder" }, -- bottom-right
-    { border_chars[3], "FloatBorder" }, -- bottom
-    { border_chars[8], "FloatBorder" }, -- bottom-left
-    { border_chars[4], "FloatBorder" }, -- left
-  }
+	local border_chars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
+	local border = {
+		{ border_chars[5], "FloatBorder" }, -- top-left
+		{ border_chars[1], "FloatBorder" }, -- top
+		{ border_chars[6], "FloatBorder" }, -- top-right
+		{ border_chars[2], "FloatBorder" }, -- right
+		{ border_chars[7], "FloatBorder" }, -- bottom-right
+		{ border_chars[3], "FloatBorder" }, -- bottom
+		{ border_chars[8], "FloatBorder" }, -- bottom-left
+		{ border_chars[4], "FloatBorder" }, -- left
+	}
 
-  -- Window options for nvim_open_win
-  local win_opts = {
-    style = "minimal",
-    relative = "editor",
-    row = opts.line,
-    col = opts.col,
-    width = opts.minwidth,
-    height = opts.minheight,
-    border = border,
-    title = opts.title,
-    title_pos = "center",
-  }
+	-- Window options for nvim_open_win
+	local win_opts = {
+		style = "minimal",
+		relative = "editor",
+		row = opts.line,
+		col = opts.col,
+		width = opts.minwidth,
+		height = opts.minheight,
+		border = border,
+		title = opts.title,
+		title_pos = "center",
+	}
 
-  local win_id = vim.api.nvim_open_win(bufnr, true, win_opts)
+	local win_id = vim.api.nvim_open_win(bufnr, true, win_opts)
 
-  vim.api.nvim_set_option_value("wrap", false, { win = win_id })
-  vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+	vim.api.nvim_set_option_value("wrap", false, { win = win_id })
+	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 
-  return bufnr, win_id
+	return bufnr, win_id
 end
 
 M.show_help = function()
@@ -199,6 +198,7 @@ M.show_help = function()
 		"Toggle UI               " .. fmt(base_config.toggle),
 		"Add bookmark            " .. fmt(base_config.add),
 		"Delete current bookmark " .. fmt(base_config.delete),
+		"Change line             " .. fmt(base_config.change_line),
 		"Next bookmark           " .. fmt(base_config.next_bookmark),
 		"Prev bookmark           " .. fmt(base_config.prev_bookmark),
 		"Search bookmarks        " .. fmt(base_config.search_bookmarks),
@@ -215,6 +215,7 @@ M.show_help = function()
 		"Go to bookmark, split   " .. fmt(window_config.goto_bookmark_hsplit),
 		"Go to bookmark, vsplit  " .. fmt(window_config.goto_bookmark_vsplit),
 		"Go to bookmark at index " .. "# of index",
+		"Change bookmark line    " .. fmt(window_config.change_line),
 		"Delete bookmark         " .. fmt(window_config.delete_bookmark),
 		"Next stack              " .. fmt(window_config.next_stack),
 		"Previous stack          " .. fmt(window_config.previous_stack),
@@ -305,6 +306,11 @@ local create_windows = function(max_stack_size)
 			window_config.goto_bookmark_vsplit,
 			':lua require("spelunk").goto_selected_bookmark_vertical_split()<CR>',
 			"[spelunk.nvim] Go to selected bookmark, in new vertical split"
+		)
+		set(
+			window_config.change_line,
+			':lua require("spelunk").change_line_of_current_mark()<CR>',
+			"[spelunk.nvim] Change line of selected bookmark"
 		)
 		set(
 			window_config.delete_bookmark,

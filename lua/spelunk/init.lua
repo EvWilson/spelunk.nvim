@@ -401,6 +401,63 @@ M.get_mark_meta = function(stack_idx, mark_idx, field)
 	return markmgr.get_mark_meta(stack_idx, mark_idx, field)
 end
 
+---@param mark_index integer
+local change_mark_line = function(mark_index)
+	---@type Mark
+	local mark = markmgr.get_mark(current_stack_index, mark_index)
+	local old_line = mark.line
+
+	local new_line = tonumber(vim.fn.input("[spelunk.nvim] Move bookmark to line: "))
+	if not new_line or new_line == 0 then
+		return
+	end
+
+	if markmgr.line_has_mark(current_stack_index, mark.file, new_line) then
+		vim.schedule(function()
+			vim.notify("[spelunk.nvim] Line " .. new_line .. " already has a mark")
+		end)
+		return
+	end
+
+	if new_line == old_line then
+		return
+	end
+
+	local nr_lines = util.line_count(mark.file)
+	if new_line > nr_lines then
+		vim.schedule(function()
+			vim.notify("[spelunk.nvim] This file only has " .. nr_lines .. " lines", vim.log.levels.ERROR)
+		end)
+		return
+	end
+
+	mark.line = new_line
+
+	M.persist()
+	update_window(true)
+	vim.schedule(function()
+		vim.notify(string.format("[spelunk.nvim] Bookmark %d line change: %d -> %d", cursor_index, old_line, new_line))
+	end)
+end
+
+--- Update the line of the mark on current file line, in the current stack.
+M.change_line_of_mark_on_current_line = function()
+	local line = vim.fn.line(".")
+	---@type integer | nil
+	local mark_idx = markmgr.get_mark_idx_from_line(current_stack_index, vim.api.nvim_buf_get_name(0), line)
+	if not mark_idx then
+		vim.notify("[spelunk.nvim] No bookmark on line " .. line, vim.log.levels.ERROR)
+		return
+	end
+
+	change_mark_line(mark_idx)
+end
+
+--- Update the line of the current mark.
+M.change_line_of_current_mark = function()
+	change_mark_line(cursor_index)
+end
+
 M.setup = function(c)
 	local conf = c or {}
 	local cfg = require("spelunk.config")
@@ -463,6 +520,7 @@ M.setup = function(c)
 		"[spelunk.nvim] Fuzzy find bookmarks in current stack"
 	)
 	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
+	set(base_config.change_line, M.change_line_of_mark_on_current_line, "[spelunk.nvim] Change bookmark line")
 end
 
 M.get_current_stack_index = function()

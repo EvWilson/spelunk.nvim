@@ -483,4 +483,23 @@ M.stacks = function()
 	return stacks
 end
 
+---@param mark_idx integer
+---@return Mark
+M.get_mark = function(stack_idx, mark_idx)
+	return stacks[stack_idx].marks[mark_idx]
+end
+
+---@param stack_idx integer
+---@param file string
+---@param line integer
+---@return boolean
+M.line_has_mark = function (stack_idx, file, line)
+	for _, m in ipairs(stacks[stack_idx].marks) do
+		if m.file == file and m.line == line then
+			return true
+		end
+	end
+	return false
+end
+
 return M

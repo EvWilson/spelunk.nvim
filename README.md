@@ -68,6 +68,8 @@ Here's the default mapping object for reference:
 		search_current_bookmarks = '<leader>bc',
 		-- Fuzzy find all stacks
 		search_stacks = '<leader>bs',
+		-- Change line of hovered bookmark
+		change_line = "<leader>bl",
 	},
 	window_mappings = {
 		-- Move the UI cursor down
@@ -84,6 +86,8 @@ Here's the default mapping object for reference:
 		goto_bookmark_hsplit = 'x',
 		-- Jump to the selected bookmark in a new horizontal split
 		goto_bookmark_vsplit = 'v',
+		-- Change line of selected bookmark
+		change_line = 'l',
 		-- Delete the selected bookmark
 		delete_bookmark = 'd',
 		-- Navigate to the next stack
