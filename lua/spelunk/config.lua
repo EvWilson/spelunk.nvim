@@ -38,6 +38,7 @@ local default_config = {
 	enable_status_col_display = false,
 	cursor_character = ">",
 	persist_by_git_branch = false,
+	fuzzy_search_provider = "telescope",
 }
 
 ---@param target table

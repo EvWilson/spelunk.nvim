@@ -1,0 +1,104 @@
+local status_ok, _ = pcall(require, "telescope")
+if not status_ok then
+	vim.notify("[spelunk.nvim] telescope.nvim is not installed, cannot be used for searching", vim.log.levels.ERROR)
+	return false
+end
+
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local previewers = require("telescope.previewers")
+
+local M = {}
+
+local file_previewer = previewers.new_buffer_previewer({
+	title = "Preview",
+	get_buffer_by_name = function(_, entry)
+		return entry.filename
+	end,
+	define_preview = function(self, entry)
+		local lines = vim.fn.readfile(entry.value.file)
+		vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+
+		local ft = vim.filetype.match({ filename = entry.value.file })
+		if ft then
+			vim.bo[self.state.bufnr].filetype = ft
+		end
+
+		vim.schedule(function()
+			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
+			-- Center the view on the line
+			local top = vim.fn.line("w0", self.state.winid)
+			local bot = vim.fn.line("w$", self.state.winid)
+			local center = math.floor(top + (bot - top) / 2)
+			---@diagnostic disable-next-line
+			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", center - 1, 0, -1)
+		end)
+	end,
+})
+
+---@param opts SearchMarksOpts
+M.search_marks = function(opts)
+	local selections = {}
+	pickers
+		.new(selections, {
+			prompt_title = opts.prompt,
+			finder = finders.new_table({
+				results = opts.data,
+				---@param entry FullBookmark
+				entry_maker = function(entry)
+					local display_str = string.format("%s.%s", entry.stack, opts.display_fn(entry))
+					return {
+						value = entry,
+						display = display_str,
+						ordinal = display_str,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter(selections),
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					local selection = action_state.get_selected_entry()
+					actions.close(prompt_bufnr)
+					opts.select_fn(selection.value.file, selection.value.line, selection.value.col)
+				end)
+				return true
+			end,
+			previewer = file_previewer,
+		})
+		:find()
+end
+
+---@param opts SearchStacksOpts
+M.search_stacks = function(opts)
+	local selections = {}
+	pickers
+		.new(selections, {
+			prompt_title = opts.prompt,
+			finder = finders.new_table({
+				results = opts.data,
+				entry_maker = function(entry)
+					local display_str = entry.name
+					return {
+						value = entry,
+						display = display_str,
+						ordinal = display_str,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter(selections),
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					local selection = action_state.get_selected_entry()
+					actions.close(prompt_bufnr)
+					opts.select_fn(selection.value.name)
+				end)
+				return true
+			end,
+		})
+		:find()
+end
+
+return M
