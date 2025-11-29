@@ -58,7 +58,7 @@ local get_stack_lines = function(stack, display_fn)
 	return lines
 end
 
----@param opts SpelunkSearchStacksOpts
+---@param opts SearchStacksOpts
 M.search_stacks = function(opts)
 	-- Add 'text' field to each item for searching
 	---@type MarkStackWithText[]
