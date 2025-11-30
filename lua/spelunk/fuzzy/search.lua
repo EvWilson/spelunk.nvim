@@ -14,6 +14,7 @@ end
 
 local provider = function()
 	local opts = {
+		---@diagnostic disable-next-line
 		["telescope"] = require("spelunk.fuzzy.telescope"),
 		["snacks"] = require("spelunk.fuzzy.snacks"),
 	}
