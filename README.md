@@ -23,8 +23,8 @@ Programming often involves navigating between similar points of interest. Additi
 - Statusline customization - show the number of bookmarks in the current buffer via [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim)
 - Also!:
 	- Sign column index display
-	- Mark aliases
-	- Show grammar context surrounding marks, via Treesitter integration
+	- Bookmark aliases
+	- Show grammar context surrounding bookmarks, via Treesitter integration
 
 See the `faqs/` directory for more custom setup guides.
 
@@ -120,7 +120,7 @@ Here's the default mapping table for reference:
 	-- See `layout.lua` for guidance on setting this up
 	---@type 'vertical' | 'horizontal' | LayoutProvider
 	orientation = 'vertical',
-	-- Enable to show mark index in status column
+	-- Enable to show bookmark index in status column
 	enable_status_col_display = false,
 	-- The character rendered before the currently selected bookmark in the UI
 	cursor_character = '>',
@@ -155,7 +155,7 @@ Some examples are available in the [`faqs`](faqs/) directory. If there's somethi
 
 Currently there are guides on:
 - Providing a custom formatter for display filenames
-- Overriding the display function altogether to show Treesitter context instead of mark location
+- Overriding the display function altogether to show Treesitter context instead of bookmark location
 - Not rendering the preview UI pane, which applies to all UI panes
-- Setting custom aliases for marks
+- Setting custom aliases for bookmarks
 - [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) integration
