@@ -194,26 +194,7 @@ end
 
 ---@return PhysicalStack[] | nil
 M.load = function()
-	local tbl = loadtbl(path)
-	if tbl == nil then
-		return nil
-	end
-
-	-- TODO: Remove this eventually
-	-- Stored marks did not originally have column field, this is a soft migration helper
-	-- Next, marks did not originally have a meta field
-	for _, v in pairs(tbl) do
-		for _, mark in pairs(v.bookmarks) do
-			if mark.col == nil then
-				mark.col = 0
-			end
-			if mark.meta == nil then
-				mark.meta = {}
-			end
-		end
-	end
-
-	return tbl
+	return loadtbl(path)
 end
 
 return M
