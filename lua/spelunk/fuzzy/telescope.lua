@@ -11,6 +11,8 @@ local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local previewers = require("telescope.previewers")
 
+local util = require("spelunk.fuzzy.util")
+
 local M = {}
 
 local file_previewer = previewers.new_buffer_previewer({
@@ -71,6 +73,17 @@ M.search_marks = function(opts)
 		:find()
 end
 
+---@param display_fn fun(mark: Mark): string
+local stack_previewer = function(display_fn)
+	return previewers.new_buffer_previewer({
+		title = "Stack Contents",
+		define_preview = function(self, entry, _)
+			local lines = util.get_stack_lines(entry.value, display_fn)
+			vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+		end,
+	})
+end
+
 ---@param opts SearchStacksOpts
 M.search_stacks = function(opts)
 	local selections = {}
@@ -97,6 +110,7 @@ M.search_stacks = function(opts)
 				end)
 				return true
 			end,
+			previewer = stack_previewer(opts.display_fn),
 		})
 		:find()
 end

@@ -24,7 +24,7 @@ end
 ---@field prompt string
 ---@field data FullBookmark[]
 ---@field select_fn fun(file: string, line: integer, col: integer, split: "vertical" | "horizontal" | nil)
----@field display_fn fun(mark: PhysicalBookmark | FullBookmark): string
+---@field display_fn fun(mark: FullBookmark | Mark): string
 
 ---@param opts SearchMarksOpts
 M.search_marks = function(opts)

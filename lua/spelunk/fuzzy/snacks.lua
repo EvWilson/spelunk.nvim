@@ -4,6 +4,8 @@ if not status_ok or not snacks then
 	return false
 end
 
+local util = require("spelunk.fuzzy.util")
+
 local M = {}
 
 ---@class FullBookmarkWithText : FullBookmark
@@ -43,33 +45,11 @@ M.search_marks = function(opts)
 		:find()
 end
 
----@class MarkStackWithText : MarkStack
----@field text string
-
----@param stack MarkStackWithText
----@param display_fn fun(mark: Mark): string
----@return string[]
-local get_stack_lines = function(stack, display_fn)
-	---@type string[]
-	local lines = {}
-	for _, mark in ipairs(stack.marks) do
-		table.insert(lines, display_fn(mark))
-	end
-	return lines
-end
-
 ---@param opts SearchStacksOpts
 M.search_stacks = function(opts)
 	-- Add 'text' field to each item for searching
 	---@type MarkStackWithText[]
-	local items = {}
-	for _, stack in ipairs(opts.data) do
-		---@type MarkStackWithText
-		local item = vim.tbl_extend("force", stack, {
-			text = stack.name,
-		})
-		table.insert(items, item)
-	end
+	local items = util.add_text(opts.data)
 
 	snacks
 		.picker({
@@ -83,7 +63,7 @@ M.search_stacks = function(opts)
 				}
 			end,
 			preview = function(ctx)
-				ctx.preview:set_lines(get_stack_lines(ctx.item, opts.display_fn))
+				ctx.preview:set_lines(util.get_stack_lines(ctx.item, opts.display_fn))
 			end,
 			---@param picker any
 			---@param item MarkStackWithText
