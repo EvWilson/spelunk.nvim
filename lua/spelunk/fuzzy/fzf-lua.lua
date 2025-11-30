@@ -6,6 +6,20 @@ end
 
 local M = {}
 
+---@param selected string[]
+---@return string | nil
+local get_selection = function(selected)
+	-- Get the selected string
+	if not selected or not #selected == 1 then
+		vim.notify(
+			"[spelunk.nvim] Received unexpected selection from fzf-lua: " .. vim.inspect(selected),
+			vim.log.levels.WARN
+		)
+		return nil
+	end
+	return selected[1]
+end
+
 ---@param opts SearchMarksOpts
 M.search_marks = function(opts)
 	---@type FullBookmarkWithText[]
@@ -25,14 +39,10 @@ M.search_marks = function(opts)
 	---@param selected string[]
 	local action = function(selected)
 		-- Get the selected string
-		if not selected or not #selected == 1 then
-			vim.notify(
-				"[spelunk.nvim] Received unexpected selection from fzf-lua: " .. vim.inspect(selected),
-				vim.log.levels.WARN
-			)
+		local selection = get_selection(selected)
+		if not selection then
 			return
 		end
-		local selection = selected[1]
 		-- Find the bookmark from the string
 		---@type FullBookmarkWithText | nil
 		local found
@@ -58,6 +68,42 @@ M.search_marks = function(opts)
 end
 
 ---@param opts SearchStacksOpts
-M.search_stacks = function(opts) end
+M.search_stacks = function(opts)
+	---@type string[]
+	local names = {}
+	for _, stack in ipairs(opts.data) do
+		table.insert(names, stack.name)
+	end
+
+	---@param selected string[]
+	local action = function(selected)
+		-- Get the selected string
+		local selection = get_selection(selected)
+		if not selection then
+			return
+		end
+		-- Find the bookmark from the string
+		---@type MarkStack | nil
+		local found
+		for _, stack in ipairs(opts.data) do
+			if stack.name == selection then
+				found = stack
+			end
+		end
+		if not found then
+			vim.notify("[spelunk.nvim] Failed to find stacks from fzf-lua selection", vim.log.levels.WARN)
+			return
+		end
+		-- Go to selection
+		opts.select_fn(found.name)
+	end
+
+	fzf.fzf_exec(names, {
+		prompt = string.format("%s> ", opts.prompt),
+		actions = {
+			["default"] = action,
+		},
+	})
+end
 
 return M

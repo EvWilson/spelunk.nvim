@@ -20,6 +20,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Fuzzy find over bookmarks and stacks, via:
 	- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 	- [snacks.nvim](https://github.com/folke/snacks.nvim)
+	- [fzf-lua](https://github.com/ibhagwan/fzf-lua)
 - Statusline customization - show the number of bookmarks in the current buffer via [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim)
 - Also!:
 	- Sign column index display
@@ -40,6 +41,7 @@ require('lazy').setup({
 		dependencies = {
 			'nvim-telescope/telescope.nvim',   -- Optional: for fuzzy search capabilities
 			'folke/snacks.nvim',               -- Optional: for fuzzy search capabilities
+			'ibhagwan/fzf-lua',                -- Optional: for fuzzy search capabilities
 			'nvim-treesitter/nvim-treesitter', -- Optional: for showing grammar context
 			'nvim-lualine/lualine.nvim',       -- Optional: for statusline display integration
 		},
