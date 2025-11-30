@@ -29,6 +29,22 @@ M.search_marks = function(opts)
 			title = opts.prompt,
 			items = items,
 			format = "text",
+			preview = function(ctx)
+				---@type FullBookmarkWithText
+				local item = ctx.item
+
+				local lines = vim.fn.readfile(item.file)
+				ctx.preview:set_lines(lines)
+
+				local ft = vim.filetype.match({ filename = item.file })
+				if ft then
+					vim.bo[ctx.preview.win.buf].filetype = ft
+				end
+
+				-- Set position data for preview:loc() to use
+				ctx.item.pos = { item.line, item.col }
+				ctx.preview:loc()
+			end,
 			---@param picker any
 			---@param item FullBookmarkWithText
 			confirm = function(picker, item)
