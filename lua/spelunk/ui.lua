@@ -41,6 +41,8 @@ local unfocus_cb
 ---@type integer | nil
 M.previous_win_id = nil
 
+local preview_ns_id = vim.api.nvim_create_namespace("spelunk")
+
 ---@param id integer
 local window_ready = function(id)
 	return id and id ~= -1 and vim.api.nvim_win_is_valid(id)
@@ -381,8 +383,11 @@ local update_preview = function(opts)
 	end
 
 	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	---@diagnostic disable-next-line
-	vim.api.nvim_buf_add_highlight(bufnr, -1, "Search", opts.bookmark.line - startline, 0, -1)
+	vim.api.nvim_buf_set_extmark(bufnr, preview_ns_id, opts.bookmark.line - startline, 0, {
+		end_row = opts.bookmark.line - startline + 1,
+		end_col = 0,
+		hl_group = "Search",
+	})
 end
 
 ---@param opts UpdateWinOpts

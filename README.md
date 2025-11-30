@@ -53,7 +53,7 @@ require('lazy').setup({
 ```
 
 Want to configure more keybinds? Pass a config object to the setup function.
-Here's the default mapping object for reference:
+Here's the default mapping table for reference:
 ```lua
 {
 	base_mappings = {

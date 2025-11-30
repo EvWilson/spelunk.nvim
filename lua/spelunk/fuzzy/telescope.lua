@@ -13,6 +13,8 @@ local previewers = require("telescope.previewers")
 
 local util = require("spelunk.fuzzy.util")
 
+local preview_ns_id = vim.api.nvim_create_namespace("spelunk")
+
 local M = {}
 
 local file_previewer = previewers.new_buffer_previewer({
@@ -31,12 +33,11 @@ local file_previewer = previewers.new_buffer_previewer({
 
 		vim.schedule(function()
 			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
-			-- Center the view on the line
-			local top = vim.fn.line("w0", self.state.winid)
-			local bot = vim.fn.line("w$", self.state.winid)
-			local center = math.floor(top + (bot - top) / 2)
-			---@diagnostic disable-next-line
-			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", center - 1, 0, -1)
+			vim.api.nvim_buf_set_extmark(self.state.bufnr, preview_ns_id, entry.value.line - 1, 0, {
+				end_row = entry.value.line,
+				end_col = 0,
+				hl_group = "Search",
+			})
 		end)
 	end,
 })
