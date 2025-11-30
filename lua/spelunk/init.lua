@@ -1,9 +1,8 @@
 local ui = require("spelunk.ui")
 local persist = require("spelunk.persistence")
----@diagnostic disable-next-line
-local tele = require("spelunk.telescope")
 local markmgr = require("spelunk.markmgr")
 local util = require("spelunk.util")
+local search = require("spelunk.fuzzy.search")
 
 local M = {}
 
@@ -32,7 +31,7 @@ M.filename_formatter = function(abspath)
 	return vim.fn.fnamemodify(abspath, ":~:.")
 end
 
----@param mark PhysicalBookmark | FullBookmark
+---@param mark Mark | PhysicalBookmark | FullBookmark
 ---@return string
 M.display_function = function(mark)
 	return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
@@ -281,18 +280,6 @@ M.all_full_marks = function()
 	return data
 end
 
-M.search_marks = function()
-	if not tele then
-		vim.notify("[spelunk.nvim] Install telescope.nvim to search marks")
-		return
-	end
-	if ui.is_open() then
-		vim.notify("[spelunk.nvim] Cannot search with UI open")
-		return
-	end
-	tele.search_marks("[spelunk.nvim] Bookmarks", M.all_full_marks(), goto_position)
-end
-
 ---@return FullBookmark[]
 M.current_full_marks = function()
 	local data = {}
@@ -309,27 +296,25 @@ M.current_full_marks = function()
 	return data
 end
 
+M.search_marks = function()
+	search.search_marks({
+		prompt = "[spelunk.nvim] All Marks",
+		data = M.all_full_marks(),
+		select_fn = goto_position,
+		display_fn = M.display_function,
+	})
+end
+
 M.search_current_marks = function()
-	if not tele then
-		vim.notify("[spelunk.nvim] Install telescope.nvim to search current marks")
-		return
-	end
-	if ui.is_open() then
-		vim.notify("[spelunk.nvim] Cannot search with UI open")
-		return
-	end
-	tele.search_marks("[spelunk.nvim] Current Stack", M.current_full_marks(), goto_position)
+	search.search_marks({
+		prompt = "[spelunk.nvim] Current Stack Marks",
+		data = M.current_full_marks(),
+		select_fn = goto_position,
+		display_fn = M.display_function,
+	})
 end
 
 M.search_stacks = function()
-	if not tele then
-		vim.notify("[spelunk.nvim] Install telescope.nvim to search stacks")
-		return
-	end
-	if ui.is_open() then
-		vim.notify("[spelunk.nvim] Cannot search with UI open")
-		return
-	end
 	---@param stack_name string
 	local cb = function(stack_name)
 		local stack_idx = markmgr.stack_idx_for_name(stack_name)
@@ -339,7 +324,12 @@ M.search_stacks = function()
 		current_stack_index = stack_idx
 		M.toggle_window()
 	end
-	tele.search_stacks("[spelunk.nvim] Stacks", markmgr.stack_names(), cb)
+	search.search_stacks({
+		prompt = "[spelunk.nvim] Stacks",
+		data = markmgr.stacks(),
+		select_fn = cb,
+		display_fn = M.display_function,
+	})
 end
 
 ---@return string
@@ -472,6 +462,9 @@ M.setup = function(c)
 	show_status_col = conf.enable_status_col_display or cfg.get_default("enable_status_col_display")
 
 	persist.setup(conf.persist_by_git_branch or cfg.get_default("persist_by_git_branch"))
+
+	local fuzzy_search_provider = conf.fuzzy_search_provider or cfg.get_default("fuzzy_search_provider")
+	search.setup(fuzzy_search_provider, ui.is_open)
 
 	-- Load saved bookmarks, if enabled and available
 	-- Otherwise, set defaults

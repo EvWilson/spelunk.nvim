@@ -1,5 +1,6 @@
 local status_ok, _ = pcall(require, "telescope")
 if not status_ok then
+	vim.notify("[spelunk.nvim] telescope.nvim is not installed, cannot be used for searching", vim.log.levels.ERROR)
 	return false
 end
 
@@ -9,6 +10,10 @@ local conf = require("telescope.config").values
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local previewers = require("telescope.previewers")
+
+local util = require("spelunk.fuzzy.util")
+
+local preview_ns_id = vim.api.nvim_create_namespace("spelunk")
 
 local M = {}
 
@@ -28,30 +33,26 @@ local file_previewer = previewers.new_buffer_previewer({
 
 		vim.schedule(function()
 			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
-			-- Center the view on the line
-			local top = vim.fn.line("w0", self.state.winid)
-			local bot = vim.fn.line("w$", self.state.winid)
-			local center = math.floor(top + (bot - top) / 2)
-			---@diagnostic disable-next-line
-			vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", center - 1, 0, -1)
+			vim.api.nvim_buf_set_extmark(self.state.bufnr, preview_ns_id, entry.value.line - 1, 0, {
+				end_row = entry.value.line,
+				end_col = 0,
+				hl_group = "Search",
+			})
 		end)
 	end,
 })
 
----@param prompt string
----@param data FullBookmark[]
----@param cb fun(file: string, line: integer, col: integer, split: "vertical" | "horizontal" |nil)
-M.search_marks = function(prompt, data, cb)
-	local opts = {}
-
+---@param opts SearchMarksOpts
+M.search_marks = function(opts)
+	local selections = {}
 	pickers
-		.new(opts, {
-			prompt_title = prompt,
+		.new(selections, {
+			prompt_title = opts.prompt,
 			finder = finders.new_table({
-				results = data,
+				results = opts.data,
 				---@param entry FullBookmark
 				entry_maker = function(entry)
-					local display_str = string.format("%s.%s", entry.stack, require("spelunk").display_function(entry))
+					local display_str = string.format("%s.%s", entry.stack, opts.display_fn(entry))
 					return {
 						value = entry,
 						display = display_str,
@@ -59,12 +60,12 @@ M.search_marks = function(prompt, data, cb)
 					}
 				end,
 			}),
-			sorter = conf.generic_sorter(opts),
+			sorter = conf.generic_sorter(selections),
 			attach_mappings = function(prompt_bufnr, _)
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
 					actions.close(prompt_bufnr)
-					cb(selection.value.file, selection.value.line, selection.value.col)
+					opts.select_fn(selection.value.file, selection.value.line, selection.value.col)
 				end)
 				return true
 			end,
@@ -73,19 +74,27 @@ M.search_marks = function(prompt, data, cb)
 		:find()
 end
 
----@param prompt string
----@param data string[]
----@param cb fun(data: string)
-M.search_stacks = function(prompt, data, cb)
-	local opts = {}
+---@param display_fn fun(mark: Mark): string
+local stack_previewer = function(display_fn)
+	return previewers.new_buffer_previewer({
+		title = "Stack Contents",
+		define_preview = function(self, entry, _)
+			local lines = util.get_stack_lines(entry.value, display_fn)
+			vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+		end,
+	})
+end
 
+---@param opts SearchStacksOpts
+M.search_stacks = function(opts)
+	local selections = {}
 	pickers
-		.new(opts, {
-			prompt_title = prompt,
+		.new(selections, {
+			prompt_title = opts.prompt,
 			finder = finders.new_table({
-				results = data,
+				results = opts.data,
 				entry_maker = function(entry)
-					local display_str = entry
+					local display_str = entry.name
 					return {
 						value = entry,
 						display = display_str,
@@ -93,15 +102,16 @@ M.search_stacks = function(prompt, data, cb)
 					}
 				end,
 			}),
-			sorter = conf.generic_sorter(opts),
+			sorter = conf.generic_sorter(selections),
 			attach_mappings = function(prompt_bufnr, _)
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
 					actions.close(prompt_bufnr)
-					cb(selection.value)
+					opts.select_fn(selection.value.name)
 				end)
 				return true
 			end,
+			previewer = stack_previewer(opts.display_fn),
 		})
 		:find()
 end

@@ -1,4 +1,4 @@
-# Add and Show Mark Metadata
+# Add and Show Bookmark Metadata
 
 Some folks want to add custom aliases for bookmarks. This is a sample setup for achieving that purpose. It creates a keybind to set a field on the metadata object for the current mark, and then overriding the display function to optionally pull the display string from that tag, otherwise falling back to the default behavior.
 
@@ -13,17 +13,17 @@ Some folks want to add custom aliases for bookmarks. This is a sample setup for 
 		spelunk.setup({
 			enable_persist = true,
 		})
-		spelunk.display_function = function(mark)
-			local alias = mark.meta['alias']
+		spelunk.display_function = function(bookmark)
+			local alias = bookmark.meta['alias']
 			if alias then
 				return alias
 			end
-			local filename = spelunk.filename_formatter(mark.file)
-			return string.format("%s:%d", filename, mark.line)
+			local filename = spelunk.filename_formatter(bookmark.file)
+			return string.format("%s:%d", filename, bookmark.line)
 		end
 		set('n', '<leader>bm', function()
 			local alias = vim.fn.input({
-				prompt = '[spelunk.nvim] Alias to attach to current mark: '
+				prompt = '[spelunk.nvim] Alias to attach to current bookmark: '
 			})
 			spelunk.add_mark_meta('alias', alias)
 		end)
@@ -36,7 +36,7 @@ Some folks want to add custom aliases for bookmarks. This is a sample setup for 
 Similarly to the above, we can:
 - Add a name to the bookmark on the hovered line (if it exists)
 - Still include the filename and line number when displaying the bookmarks, even if you've named them
-- This includes the supplied label when fuzzy-searching over our marks
+- This includes the supplied label when fuzzy-searching over our bookmarks
 
 ```lua
 {
@@ -51,12 +51,12 @@ Similarly to the above, we can:
 		local set = require("spelunk.config").set_keymap
 
 		-- Display filename and line (default) and optionally the bookmark name
-		spelunk.display_function = function(mark)
+		spelunk.display_function = function(bookmark)
 			local mark_idx = nil
 			local mark_name = nil
 
 			for i, mark_ in ipairs(markmgr.physical_stack(spelunk.get_current_stack_index()).bookmarks) do
-				if mark_.file == mark.file and mark_.line == mark.line then
+				if mark_.file == bookmark.file and mark_.line == bookmark.line then
 					mark_idx = i
 					break
 				end
@@ -67,10 +67,10 @@ Similarly to the above, we can:
 			end
 
 			if mark_name and mark_name ~= "" then
-				return string.format("%s:%d [%s]", spelunk.filename_formatter(mark.file), mark.line, mark_name)
+				return string.format("%s:%d [%s]", spelunk.filename_formatter(bookmark.file), bookmark.line, mark_name)
 			end
 
-			return string.format("%s:%d", spelunk.filename_formatter(mark.file), mark.line)
+			return string.format("%s:%d", spelunk.filename_formatter(bookmark.file), bookmark.line)
 		end
 
 		-- Give the bookmark on the line you're on a name
