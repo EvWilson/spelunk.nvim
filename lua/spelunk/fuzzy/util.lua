@@ -1,19 +1,5 @@
 local M = {}
 
----@param stacks MarkStack[]
----@return MarkStackWithText[]
-M.add_text = function(stacks)
-	local items = {}
-	for _, stack in ipairs(stacks) do
-		---@type MarkStackWithText
-		local item = vim.tbl_extend("force", stack, {
-			text = stack.name,
-		})
-		table.insert(items, item)
-	end
-	return items
-end
-
 ---@class MarkStackWithText : MarkStack
 ---@field text string
 
