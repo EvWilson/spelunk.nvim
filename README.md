@@ -128,7 +128,7 @@ Here's the default mapping table for reference:
 	persist_by_git_branch = false,
 	-- Optional provider to use to power fuzzy searching capabilities
 	-- This can also be explicitly disabled
-	---@type 'telescope' | 'snacks' | 'disabled'
+	---@type 'telescope' | 'snacks' | 'fzf-lua' | 'disabled'
 	fuzzy_search_provider = 'telescope',
 }
 ```

@@ -37,6 +37,11 @@ M.display_function = function(mark)
 	return string.format("%s:%d", M.filename_formatter(mark.file), mark.line)
 end
 
+---@return integer
+M.get_current_stack_index = function()
+	return current_stack_index
+end
+
 ---@return UpdateWinOpts
 local get_win_update_opts = function()
 	---@type string[]
@@ -499,25 +504,15 @@ M.setup = function(c)
 		':lua require("spelunk").select_and_goto_bookmark(-1)<CR>',
 		"[spelunk.nvim] Go to previous bookmark"
 	)
+	set(base_config.change_line, M.change_line_of_mark_on_current_line, "[spelunk.nvim] Change bookmark line")
 
-	-- Register telescope extension, only if telescope itself is loaded already
-	local telescope_loaded, telescope = pcall(require, "telescope")
-	if not telescope_loaded or not telescope then
-		return
-	end
-	telescope.load_extension("spelunk")
-	set(base_config.search_bookmarks, telescope.extensions.spelunk.marks, "[spelunk.nvim] Fuzzy find bookmarks")
+	set(base_config.search_bookmarks, M.search_marks, "[spelunk.nvim] Fuzzy find bookmarks")
 	set(
 		base_config.search_current_bookmarks,
-		telescope.extensions.spelunk.current_marks,
+		M.search_current_marks,
 		"[spelunk.nvim] Fuzzy find bookmarks in current stack"
 	)
-	set(base_config.search_stacks, telescope.extensions.spelunk.stacks, "[spelunk.nvim] Fuzzy find stacks")
-	set(base_config.change_line, M.change_line_of_mark_on_current_line, "[spelunk.nvim] Change bookmark line")
-end
-
-M.get_current_stack_index = function()
-	return current_stack_index
+	set(base_config.search_stacks, M.search_stacks, "[spelunk.nvim] Fuzzy find stacks")
 end
 
 return M
