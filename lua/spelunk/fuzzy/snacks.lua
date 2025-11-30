@@ -15,14 +15,7 @@ local M = {}
 M.search_marks = function(opts)
 	-- Add 'text' field to each item for searching
 	---@type FullBookmarkWithText[]
-	local items = {}
-	for _, mark in ipairs(opts.data) do
-		---@type FullBookmarkWithText
-		local item = vim.tbl_extend("force", mark, {
-			text = string.format("%s.%s", mark.stack, opts.display_fn(mark)),
-		})
-		table.insert(items, item)
-	end
+	local items = util.add_text(opts.data)
 
 	snacks
 		.picker({
