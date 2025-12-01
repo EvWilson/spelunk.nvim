@@ -5,9 +5,6 @@ Some folks want to add custom aliases for bookmarks. This is a sample setup for 
 ```lua
 {
 	'EvWilson/spelunk.nvim',
-	dependencies = {
-		'nvim-telescope/telescope.nvim',
-	},
 	config = function()
 		local spelunk = require('spelunk')
 		spelunk.setup({
@@ -41,9 +38,6 @@ Similarly to the above, we can:
 ```lua
 {
 	'EvWilson/spelunk.nvim',
-	dependencies = {
-		'nvim-telescope/telescope.nvim',
-	},
 	opts = { enable_persist = true, enable_status_col_display = true },
 	config = function(_, opts)
 		local spelunk = require("spelunk")
