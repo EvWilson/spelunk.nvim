@@ -1,11 +1,11 @@
 local M = {}
 
----@type "telescope" | "snacks" | "disabled"
+---@type "telescope" | "snacks" | "fzf-lua" | "disabled"
 local selection
 ---@type fun(): boolean
 local ui_is_open
 
----@param fuzzy_search_provider "telescope" | "snacks" | "disabled"
+---@param fuzzy_search_provider "telescope" | "snacks" | "fzf-lua" | "disabled"
 ---@param ui_open fun(): boolean
 M.setup = function(fuzzy_search_provider, ui_open)
 	selection = fuzzy_search_provider
@@ -14,11 +14,18 @@ end
 
 local provider = function()
 	local opts = {
-		---@diagnostic disable-next-line
-		["telescope"] = require("spelunk.fuzzy.telescope"),
-		["snacks"] = require("spelunk.fuzzy.snacks"),
+		["telescope"] = function()
+			---@diagnostic disable-next-line
+			return require("spelunk.fuzzy.telescope")
+		end,
+		["snacks"] = function()
+			return require("spelunk.fuzzy.snacks")
+		end,
+		["fzf-lua"] = function()
+			return require("spelunk.fuzzy.fzf-lua")
+		end,
 	}
-	return opts[selection]
+	return opts[selection]()
 end
 
 ---@class SearchMarksOpts
