@@ -4,6 +4,8 @@ if not status_ok or not fzf then
 	return false
 end
 
+local builtin = require("fzf-lua.previewer.builtin")
+
 local util = require("spelunk.fuzzy.util")
 
 local M = {}
@@ -11,7 +13,6 @@ local M = {}
 ---@param selected string[]
 ---@return string | nil
 local get_selection = function(selected)
-	-- Get the selected string
 	if not selected or not #selected == 1 then
 		vim.notify(
 			"[spelunk.nvim] Received unexpected selection from fzf-lua: " .. vim.inspect(selected),
@@ -22,40 +23,34 @@ local get_selection = function(selected)
 	return selected[1]
 end
 
-local builtin = require("fzf-lua.previewer.builtin")
-
--- Inherit from the "buffer_or_file" previewer
 local MarkPreviewer = builtin.buffer_or_file:extend()
 
 function MarkPreviewer:new(o, opts, fzf_win)
 	MarkPreviewer.super.new(self, o, opts, fzf_win)
 	setmetatable(self, MarkPreviewer)
+	self.bmap = opts.bmap
 	return self
 end
 
 function MarkPreviewer:parse_entry(entry_str)
-	-- Assume an arbitrary entry in the format of 'file:line'
-	local path, line = entry_str:match("([^:]+):?(.*)")
+	---@type FullBookmark
+	local bookmark = self.bmap[entry_str]
 	return {
-		path = path,
-		line = tonumber(line) or 1,
-		col = 1,
+		path = bookmark.file,
+		line = tonumber(bookmark.line) or 1,
+		col = bookmark.col,
 	}
 end
 
 ---@param opts SearchMarksOpts
 M.search_marks = function(opts)
-	---@type FullBookmarkWithText[]
-	local bookmarks = {}
+	---@type table<string, FullBookmark>
+	local bookmark_map = {}
 	---@type string[]
 	local lines = {}
 	for _, bookmark in ipairs(opts.data) do
 		local search_text = string.format("%s.%s", bookmark.stack, opts.display_fn(bookmark))
-		---@type FullBookmarkWithText
-		local b = vim.tbl_extend("force", bookmark, {
-			text = search_text,
-		})
-		table.insert(bookmarks, b)
+		bookmark_map[search_text] = bookmark
 		table.insert(lines, search_text)
 	end
 
@@ -66,20 +61,10 @@ M.search_marks = function(opts)
 		if not selection then
 			return
 		end
-		-- Find the bookmark from the string
-		---@type FullBookmarkWithText | nil
-		local found
-		for _, bookmark in ipairs(bookmarks) do
-			if bookmark.text == selection then
-				found = bookmark
-			end
-		end
-		if not found then
-			vim.notify("[spelunk.nvim] Failed to find bookmark from fzf-lua selection", vim.log.levels.WARN)
-			return
-		end
+		---@type FullBookmark
+		local bookmark = bookmark_map[selection]
 		-- Go to selection
-		opts.select_fn(found.file, found.line, found.col)
+		opts.select_fn(bookmark.file, bookmark.line, bookmark.col)
 	end
 
 	fzf.fzf_exec(lines, {
@@ -87,6 +72,8 @@ M.search_marks = function(opts)
 		actions = {
 			["default"] = action,
 		},
+		previewer = MarkPreviewer,
+		bmap = bookmark_map,
 	})
 end
 
