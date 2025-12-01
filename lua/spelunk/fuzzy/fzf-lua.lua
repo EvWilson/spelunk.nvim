@@ -4,6 +4,8 @@ if not status_ok or not fzf then
 	return false
 end
 
+local util = require("spelunk.fuzzy.util")
+
 local M = {}
 
 ---@param selected string[]
@@ -18,6 +20,27 @@ local get_selection = function(selected)
 		return nil
 	end
 	return selected[1]
+end
+
+local builtin = require("fzf-lua.previewer.builtin")
+
+-- Inherit from the "buffer_or_file" previewer
+local MarkPreviewer = builtin.buffer_or_file:extend()
+
+function MarkPreviewer:new(o, opts, fzf_win)
+	MarkPreviewer.super.new(self, o, opts, fzf_win)
+	setmetatable(self, MarkPreviewer)
+	return self
+end
+
+function MarkPreviewer:parse_entry(entry_str)
+	-- Assume an arbitrary entry in the format of 'file:line'
+	local path, line = entry_str:match("([^:]+):?(.*)")
+	return {
+		path = path,
+		line = tonumber(line) or 1,
+		col = 1,
+	}
 end
 
 ---@param opts SearchMarksOpts
@@ -67,12 +90,40 @@ M.search_marks = function(opts)
 	})
 end
 
+local StackPreviewer = builtin.base:extend()
+
+function StackPreviewer:new(o, opts, fzf_win)
+	StackPreviewer.super.new(self, o, opts, fzf_win)
+	setmetatable(self, StackPreviewer)
+	self.stack_map = opts.stack_map
+	self.display_fn = opts.display_fn
+	return self
+end
+
+function StackPreviewer:populate_preview_buf(entry_str)
+	local tmpbuf = self:get_tmp_buffer()
+	local lines = util.get_stack_lines(self.stack_map[entry_str], self.display_fn)
+	vim.api.nvim_buf_set_lines(tmpbuf, 0, -1, false, lines)
+	self:set_preview_buf(tmpbuf)
+	self.win:update_preview_scrollbar()
+end
+
+function StackPreviewer:gen_winopts()
+	local new_winopts = {
+		cursorline = false,
+	}
+	return vim.tbl_extend("force", self.winopts, new_winopts)
+end
+
 ---@param opts SearchStacksOpts
 M.search_stacks = function(opts)
 	---@type string[]
 	local names = {}
+	---@type table<string, MarkStack>
+	local name_to_stack = {}
 	for _, stack in ipairs(opts.data) do
 		table.insert(names, stack.name)
+		name_to_stack[stack.name] = stack
 	end
 
 	---@param selected string[]
@@ -91,7 +142,7 @@ M.search_stacks = function(opts)
 			end
 		end
 		if not found then
-			vim.notify("[spelunk.nvim] Failed to find stacks from fzf-lua selection", vim.log.levels.WARN)
+			vim.notify("[spelunk.nvim] Failed to find stack from fzf-lua selection", vim.log.levels.WARN)
 			return
 		end
 		-- Go to selection
@@ -103,6 +154,9 @@ M.search_stacks = function(opts)
 		actions = {
 			["default"] = action,
 		},
+		previewer = StackPreviewer,
+		stack_map = name_to_stack,
+		display_fn = opts.display_fn,
 	})
 end
 
