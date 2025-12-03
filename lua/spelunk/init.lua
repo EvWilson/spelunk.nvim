@@ -71,9 +71,6 @@ local update_window = function(updated_indices)
 		markmgr.update_indices(current_stack_index)
 	end
 	ui.update_window(get_win_update_opts())
-	if show_status_col then
-		util.set_extmarks_from_stack(markmgr.stacks()[current_stack_index])
-	end
 end
 
 ---@param file string

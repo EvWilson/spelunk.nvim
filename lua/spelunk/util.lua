@@ -1,39 +1,5 @@
 local M = {}
 
---- Clears the "spelunk" extmark from all open buffers.
----@return nil
-local clear_extmarks = function()
-	local ns_id = vim.api.nvim_create_namespace("spelunk")
-	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_loaded(bufnr) then
-			vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
-		end
-	end
-end
-
---- Only show the marks belonging to the current stack.
----@param stack MarkStack
----@return nil
-M.set_extmarks_from_stack = function(stack)
-	clear_extmarks()
-	local ns_id = vim.api.nvim_create_namespace("spelunk")
-
-	for mark_idx, mark in ipairs(stack.marks) do
-		local bufnr = vim.fn.bufnr(mark.file, true) -- get buffer number, load if needed
-		if bufnr and vim.api.nvim_buf_is_loaded(bufnr) then
-			local opts = {
-				strict = false,
-				right_gravity = true,
-				sign_text = tostring(mark_idx),
-			}
-
-			local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, mark.line - 1, mark.col - 1, opts)
-			mark.bufnr = bufnr
-			mark.extmark_id = mark_id
-		end
-	end
-end
-
 ---@param mark PhysicalBookmark
 ---@return string
 M.get_treesitter_context = function(mark)

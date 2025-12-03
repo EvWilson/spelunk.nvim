@@ -33,11 +33,13 @@ local file_previewer = previewers.new_buffer_previewer({
 
 		vim.schedule(function()
 			vim.api.nvim_win_set_cursor(self.state.winid, { entry.value.line, 0 })
-			vim.api.nvim_buf_set_extmark(self.state.bufnr, preview_ns_id, entry.value.line - 1, 0, {
-				end_row = entry.value.line,
-				end_col = 0,
-				hl_group = "Search",
-			})
+			vim.hl.range(
+				self.state.bufnr,
+				preview_ns_id,
+				"Search",
+				{ entry.value.line - 1, 0 },
+				{ entry.value.line, 0 }
+			)
 		end)
 	end,
 })
