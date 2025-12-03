@@ -382,12 +382,16 @@ local update_preview = function(opts)
 		vim.bo[bufnr].filetype = ft
 	end
 
-	vim.api.nvim_buf_clear_namespace(bufnr, -1, 0, -1)
-	vim.api.nvim_buf_set_extmark(bufnr, preview_ns_id, opts.bookmark.line - startline, 0, {
-		end_row = opts.bookmark.line - startline + 1,
-		end_col = 0,
-		hl_group = "Search",
-	})
+	vim.api.nvim_buf_clear_namespace(bufnr, preview_ns_id, 0, -1)
+	vim.schedule(function()
+		vim.hl.range(
+			bufnr,
+			preview_ns_id,
+			"Search",
+			{ opts.bookmark.line - startline, 0 },
+			{ opts.bookmark.line - startline + 1, 0 }
+		)
+	end)
 end
 
 ---@param opts UpdateWinOpts
