@@ -1,11 +1,11 @@
 local M = {}
 
----@type "telescope" | "snacks" | "fzf-lua" | "disabled"
+---@type "native" | "telescope" | "snacks" | "fzf-lua" | "disabled"
 local selection
 ---@type fun(): boolean
 local ui_is_open
 
----@param fuzzy_search_provider "telescope" | "snacks" | "fzf-lua" | "disabled"
+---@param fuzzy_search_provider "native" | "telescope" | "snacks" | "fzf-lua" | "disabled"
 ---@param ui_open fun(): boolean
 M.setup = function(fuzzy_search_provider, ui_open)
 	selection = fuzzy_search_provider
@@ -14,6 +14,9 @@ end
 
 local provider = function()
 	local opts = {
+		["native"] = function()
+			return require("spelunk.fuzzy.native")
+		end,
 		["telescope"] = function()
 			---@diagnostic disable-next-line
 			return require("spelunk.fuzzy.telescope")
@@ -25,7 +28,14 @@ local provider = function()
 			return require("spelunk.fuzzy.fzf-lua")
 		end,
 	}
-	return opts[selection]()
+	local selected_provider = opts[selection]
+	if not selected_provider then
+		vim.notify(
+			"[spelunk.nvim] Unrecognized fuzzy search provider value: " .. vim.inspect(selection),
+			vim.log.levels.ERROR
+		)
+	end
+	return selected_provider()
 end
 
 ---@class SearchMarksOpts

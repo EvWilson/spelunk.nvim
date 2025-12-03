@@ -2,6 +2,7 @@ local M = {}
 
 local skipkey = "NONE"
 
+---@type SpelunkConfig
 local default_config = {
 	base_mappings = {
 		toggle = "<leader>bt",
@@ -38,7 +39,7 @@ local default_config = {
 	enable_status_col_display = false,
 	cursor_character = ">",
 	persist_by_git_branch = false,
-	fuzzy_search_provider = "telescope",
+	fuzzy_search_provider = "native",
 }
 
 ---@param target table
@@ -52,12 +53,12 @@ local apply_defaults = function(target, defaults)
 	return target
 end
 
----@param target table
+---@param target SpelunkBaseMappings
 M.apply_base_defaults = function(target)
 	apply_defaults(target, default_config.base_mappings)
 end
 
----@param target table
+---@param target SpelunkWindowMappings
 M.apply_window_defaults = function(target)
 	apply_defaults(target, default_config.window_mappings)
 end

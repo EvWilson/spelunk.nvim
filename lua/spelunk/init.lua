@@ -450,6 +450,47 @@ M.change_line_of_current_mark = function()
 	change_mark_line(cursor_index)
 end
 
+---@class SpelunkBaseMappings
+---@field toggle string | string[]
+---@field add string | string[]
+---@field delete string | string[]
+---@field next_bookmark string | string[]
+---@field prev_bookmark string | string[]
+---@field search_bookmarks string | string[]
+---@field search_current_bookmarks string | string[]
+---@field search_stacks string | string[]
+---@field change_line string | string[]
+
+---@class SpelunkWindowMappings
+---@field cursor_down string | string[]
+---@field cursor_up string | string[]
+---@field bookmark_down string | string[]
+---@field bookmark_up string | string[]
+---@field goto_bookmark string | string[]
+---@field goto_bookmark_hsplit string | string[]
+---@field goto_bookmark_vsplit string | string[]
+---@field change_line string | string[]
+---@field delete_bookmark string | string[]
+---@field next_stack string | string[]
+---@field previous_stack string | string[]
+---@field new_stack string | string[]
+---@field delete_stack string | string[]
+---@field edit_stack string | string[]
+---@field close string | string[]
+---@field help string | string[]
+
+---@class SpelunkConfig
+---@field base_mappings SpelunkBaseMappings
+---@field window_mappings SpelunkWindowMappings
+---@field enable_persist boolean
+---@field statusline_prefix string
+---@field orientation "vertical" | "horizontal" | LayoutProvider
+---@field enable_status_col_display boolean
+---@field cursor_character string
+---@field persist_by_git_branch boolean
+---@field fuzzy_search_provider "native" | "telescope" | "snacks" | "fzf-lua" | "disabled"
+
+---@param c SpelunkConfig
 M.setup = function(c)
 	local conf = c or {}
 	local cfg = require("spelunk.config")
