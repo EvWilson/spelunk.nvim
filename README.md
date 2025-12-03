@@ -18,6 +18,7 @@ Programming often involves navigating between similar points of interest. Additi
 - Cycle bookmarks via remappable keybinds
 - Jump directly to bookmarks by index
 - Fuzzy find over bookmarks and stacks, via:
+	- `vim.ui.select`
 	- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 	- [snacks.nvim](https://github.com/folke/snacks.nvim)
 	- [fzf-lua](https://github.com/ibhagwan/fzf-lua)
@@ -39,9 +40,9 @@ require('lazy').setup({
 	{
 		'EvWilson/spelunk.nvim',
 		dependencies = {
-			'nvim-telescope/telescope.nvim',   -- Optional: for fuzzy search capabilities
-			'folke/snacks.nvim',               -- Optional: for fuzzy search capabilities
-			'ibhagwan/fzf-lua',                -- Optional: for fuzzy search capabilities
+			'nvim-telescope/telescope.nvim',   -- Optional: for enhanced fuzzy search capabilities
+			'folke/snacks.nvim',               -- Optional: for enhanced fuzzy search capabilities
+			'ibhagwan/fzf-lua',                -- Optional: for enhanced fuzzy search capabilities
 			'nvim-treesitter/nvim-treesitter', -- Optional: for showing grammar context
 			'nvim-lualine/lualine.nvim',       -- Optional: for statusline display integration
 		},
@@ -130,8 +131,8 @@ Here's the default mapping table for reference:
 	persist_by_git_branch = false,
 	-- Optional provider to use to power fuzzy searching capabilities
 	-- This can also be explicitly disabled
-	---@type 'telescope' | 'snacks' | 'fzf-lua' | 'disabled'
-	fuzzy_search_provider = 'telescope',
+	---@type 'native' | 'telescope' | 'snacks' | 'fzf-lua' | 'disabled'
+	fuzzy_search_provider = 'native',
 }
 ```
 
@@ -156,8 +157,8 @@ If there is additional functionality you'd like to see added or exposed, please 
 Some examples are available in the [`faqs`](faqs/) directory. If there's something you'd like to know how to do, please open an issue and we can see about implementing it!
 
 Currently there are guides on:
-- Providing a custom formatter for display filenames
+- Providing a custom formatter for displayed filenames
 - Overriding the display function altogether to show Treesitter context instead of bookmark location
-- Not rendering the preview UI pane, which applies to all UI panes
+- Not rendering the preview UI pane, which can apply to all UI panes
 - Setting custom aliases for bookmarks
 - [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) integration
