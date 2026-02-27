@@ -28,7 +28,7 @@ local show_status_col
 ---@param abspath string
 ---@return string
 M.filename_formatter = function(abspath)
-	return vim.fn.fnamemodify(abspath, ":~:.")
+	return util.to_relative(abspath)
 end
 
 ---@param mark Mark | PhysicalBookmark | FullBookmark

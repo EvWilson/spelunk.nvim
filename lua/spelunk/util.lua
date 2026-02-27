@@ -143,4 +143,11 @@ M.line_count = function(file_path)
 	return count
 end
 
+--- Returns a relative path from cwd, or the original absolute path if not under cwd.
+--- @param abs_path string Absolute file path
+--- @return string
+M.to_relative = function(abs_path)
+	return vim.fn.fnamemodify(abs_path, ":~:.")
+end
+
 return M

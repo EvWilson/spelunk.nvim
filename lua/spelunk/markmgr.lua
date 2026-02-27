@@ -347,7 +347,7 @@ M.add_mark_current_pos = function(stack_idx)
 		string.format(
 			"[spelunk.nvim] Bookmark added to stack '%s': %s:%d:%d",
 			stacks[stack_idx].name,
-			newmark.file,
+			util.to_relative(newmark.file),
 			newmark.line,
 			newmark.col
 		)
