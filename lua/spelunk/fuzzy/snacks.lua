@@ -47,9 +47,15 @@ M.search_marks = function(opts)
 			end,
 			---@param picker any
 			---@param item FullBookmarkWithText
-			confirm = function(picker, item)
+			---@param action? { cmd?: string }
+			confirm = function(picker, item, action)
 				picker:close()
-				opts.select_fn(item.file, item.line, item.col)
+
+				local split = action and ({
+					split = "horizontal",
+					vsplit = "vertical",
+				})[action.cmd]
+				opts.select_fn(item.file, item.line, item.col, split)
 			end,
 		})
 		:find()
